@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Web_EAMSystem.Data;
 using Web_EAMSystem.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Web_EAMSystem.Controllers
 {
@@ -63,18 +64,38 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult SubCategoryCreate()
         {
+            // 1.資料庫撈取「大類資料」。
+            // 讓使用者選擇「尚未停用(IsDisabled == false)」的大類
+            var mainCategories = _context.AssetCategories
+                .Where(c => c.IsDisabled == false)
+                .Select(c => new
+                {
+                    // 我們只需要代號當作存檔的值 (Value)
+                    MAIN_CAT_CODE = c.MAIN_CAT_CODE,
+                    // 為了讓使用者體驗更好，我們把代號跟名稱合併顯示，例如："COMP - 電腦設備"
+                    DisplayText = c.MAIN_CAT_CODE + " - " + c.MAIN_CAT_NAME
+                })
+                .ToList();
+
+            // 2. 將撈出來的資料轉換成前端 <select> 需要的 SelectList 物件
+            // 參數解釋：(資料來源, `<option>` 的 value 屬性對應欄位, `<option>` 的顯示文字對應欄位)
+            ViewBag.MainCategoryList = new SelectList(mainCategories, "MAIN_CAT_CODE", "DisplayText");
+
             return View("SubCategoryCreate");
         }
         // 2. POST: 負責接收使用者填寫的資料，並存入資料庫
         [HttpPost]
         [ValidateAntiForgeryToken] // 資安防護：防止跨站請求偽造 (CSRF) 攻擊
-        public IActionResult SubCategoryCreate(SubAssetCategory subCategory , AssetCategory category)
+        public IActionResult SubCategoryCreate(SubAssetCategory subCategory )
         {
+
+
+
             // 防呆機制：檢查資料庫是否已有重複資料
             // ==========================================
-            bool isDuplicate = _context.AssetCategories.Any(c =>
-                c.MAIN_CAT_CODE == subCategory.SUB_CAT_CODE ||
-                c.MAIN_CAT_NAME == subCategory.SUB_CAT_NAME);
+            bool isDuplicate = _context.SubAssetCategories.Any(c =>
+                c.SUB_CAT_CODE == subCategory.SUB_CAT_CODE ||
+                c.SUB_CAT_NAME == subCategory.SUB_CAT_NAME);
 
             var currentUser = GetCurrentUser();
 
@@ -82,10 +103,10 @@ namespace Web_EAMSystem.Controllers
             if (isDuplicate)
             {
                 // 如果發現重複，設定錯誤提示
-                TempData["ErrorMessage"] = "添加失敗！資料庫中已存在相同的大類代號或大類名稱。";
+                TempData["ErrorMessage"] = "添加失敗！資料庫中已存在相同的類別代號和類別名稱。";
 
                 // 直接退回新增畫面，並把使用者填到一半的 category 傳回去
-                return View("CategoryCreate", subCategory);
+                return View("SubCategoryCreate", subCategory);
             }
 
             //  關鍵新增：在驗證之前，手動排除那些不需要使用者從畫面上輸入的欄位！
@@ -138,13 +159,152 @@ namespace Web_EAMSystem.Controllers
             return View(subCategory);
         }
 
+        /// <summary>
+        /// 大類編輯
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult SubCategoryEdit(Guid id)
+        {
+
+            if (id == null) return NotFound();
+
+            //於資料庫查詢此筆資料
+            var category = _context.SubAssetCategories.Find(id);
+            if (category == null) return NotFound();
+
+            return View("SubCategoryEdit");
+        }
+        [HttpPost]
+        public IActionResult SubCategoryEdit(Guid id, SubAssetCategory category)
+        {
+            var currentUser = GetCurrentUser();
+            // 排除不需要驗證的欄位 (因為這些是系統產生的或是舊資料)
+            ModelState.Remove("CreatedDate");
+            ModelState.Remove("CreatorId");
+            ModelState.Remove("Creator");
+            ModelState.Remove("ModifiedDate");
+            ModelState.Remove("ModifierId");
+            ModelState.Remove("Modifier");
 
 
 
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    //  檢查是否有「其他筆資料」用了同樣的代號或名稱 (要排除自己)
+                    bool isDuplicate = _context.SubAssetCategories.Any(c =>
+                        c.SUB_CAT_ID != id &&
+                        (c.SUB_CAT_CODE == category.SUB_CAT_CODE || c.SUB_CAT_NAME == category.SUB_CAT_NAME));
 
+                    if (isDuplicate)
+                    {
+                        TempData["ErrorMessage"] = "修改失敗！資料庫中已存在相同的大類代號或名稱。";
+                        return View("CategoryEdit", category);
+                    }
 
+                    //  標準更新流程：先從資料庫拿出舊包裹，再把新東西塞進去
+                    var existingCategory = _context.SubAssetCategories.Find(id);
+                    if (existingCategory != null)
+                    {
+                        existingCategory.SUB_CAT_NAME = category.SUB_CAT_NAME;
+                        existingCategory.SUB_CAT_CODE = category.SUB_CAT_CODE;
+                        existingCategory.ModifierId = currentUser.UserId; // 畫面上填寫的異動者，之後改為登入者
+                        existingCategory.Modifier = currentUser.UserName; // 畫面上填寫的異動者，之後改為登入者
+                        existingCategory.ModifiedDate = DateTime.Now;  // 系統押上最新修改時間
 
+                        _context.Update(existingCategory);
+                        _context.SaveChanges();
 
+                        TempData["SuccessMessage"] = "資料修改成功！";
+
+                        return RedirectToAction(nameof(SubCategoryEdit)); // 修改完，自動跳回列表頁！
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "系統發生錯誤，修改失敗：" + ex.Message;
+                }
+            }
+            else
+            {
+                var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                TempData["ErrorMessage"] = "資料格式有誤：" + errors;
+            }
+
+            return View("SubCategoryEdit", category);
+        }
+
+        /// <summary>
+        /// 停用大類
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult SubCategoryDisable(Guid id)
+        {
+            // 1. 去資料庫把這筆資料找出來
+            var category = _context.SubAssetCategories.Find(id);
+
+            if (category == null) return NotFound();
+            var currentUser = GetCurrentUser();
+
+            try
+            {
+                // 2. 執行軟刪除：把停用標記設為 true
+                category.IsDisabled = true;
+                category.ModifierId = currentUser.UserId;
+                category.Modifier = currentUser.UserName;
+
+                // 💡 實務細節：停用也算是一種「異動」，所以我們要更新異動時間
+                category.ModifiedDate = DateTime.Now;
+                // (因為這裡沒有表單可以讓使用者輸入名字，異動者就維持上一次的人，或是你可以寫死成 "System")
+
+                // 3. 存檔
+                _context.Update(category);
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = $"大類 [{category.SUB_CAT_NAME}] 已成功停用！";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "系統發生錯誤，停用失敗：" + ex.Message;
+            }
+
+            // 4. 完成後，跳回列表頁
+            return RedirectToAction(nameof(SubCategoryIndex));
+        }
+
+        /// <summary>
+        /// 啟用大類
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult SubCategoryEnable(Guid id)
+        {
+            var category = _context.SubAssetCategories.Find(id);
+            if (category == null) return NotFound();
+
+            try
+            {
+                category.IsDisabled = false; // 改為啟用
+                category.ModifiedDate = DateTime.Now;
+
+                _context.Update(category);
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = $"大類 [{category.SUB_CAT_NAME}] 已成功恢復啟用！";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "系統發生錯誤，啟用失敗：" + ex.Message;
+            }
+
+            return RedirectToAction(nameof(SubCategoryIndex));
+        }
 
         private (string UserId, string UserName) GetCurrentUser()
         {
