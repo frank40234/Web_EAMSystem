@@ -1,0 +1,129 @@
+﻿@model IEnumerable<Web_EAMSystem.Models.AssetCategory>
+
+@{
+    ViewData["Title"] = "資料大類清單";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>資料大類維護</h2>
+    <a asp-action="CategoryCreate" class="btn btn-success"> + 新增資料大類</a>
+</div>
+
+<form method="get" asp-action="CategoryIndex" class="mb-3">
+    <div class="row g-2 align-items-center">
+
+        <div class="col-auto">
+            <select name="searchBy" class="form-select">
+                <option value="MAIN_CAT_CODE" selected="@(ViewBag.CurrentSearchBy == "MAIN_CAT_CODE")">大類代號</option>
+                <option value="MAIN_CAT_NAME" selected="@(ViewBag.CurrentSearchBy == "MAIN_CAT_NAME")">大類名稱</option>
+                <option value="Creator" selected="@(ViewBag.CurrentSearchBy == "Creator")">建檔者</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <select name="statusFilter" class="form-select">
+                <option value="All" selected="@(ViewBag.CurrentStatusFilter == "All" || string.IsNullOrEmpty(ViewBag.CurrentStatusFilter))">全部狀態</option>
+                <option value="Active" selected="@(ViewBag.CurrentStatusFilter == "Active")">僅顯示使用中</option>
+                <option value="Disabled" selected="@(ViewBag.CurrentStatusFilter == "Disabled")">僅顯示已停用</option>
+            </select>
+        </div>
+
+        <div class="col-auto">
+            <input type="text" name="keyword" class="form-control" placeholder="請輸入關鍵字..." value="@ViewBag.CurrentKeyword" />
+        </div>
+
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">🔍 搜尋</button>
+            <a asp-action="CategoryIndex" class="btn btn-outline-secondary">清除條件</a>
+        </div>
+
+    </div>
+</form>
+<hr />
+
+<table class="table table-striped table-hover mt-3">
+    <thead class="table-dark">
+        <tr>
+            <th>大類代號</th>
+            <th>大類名稱</th>
+            <th>建檔者</th>
+            <th>建檔日期</th>
+            <th>狀態</th>
+            <th>操作選項</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.MAIN_CAT_CODE</td>
+                <td>@item.MAIN_CAT_NAME</td>
+                <td>@item.Creator</td>
+                <td>@item.CreatedDate.ToString("yyyy-MM-dd")</td>
+
+                <td>
+                    @if (item.IsDisabled)
+                    {
+                        <span class="badge bg-danger">已停用</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">使用中</span>
+                    }
+                </td>
+
+                <td>
+                    <a asp-action="CategoryEdit" asp-route-id="@item.MAIN_CAT_ID" class="btn btn-sm btn-primary">
+                        修改
+                    </a>
+
+                    @if (!item.IsDisabled)
+                    {
+                        <a asp-action="CategoryDisable" asp-route-id="@item.MAIN_CAT_ID" class="btn btn-sm btn-warning" onclick="return confirm('確定要停用這筆資料嗎？');">
+                            停用
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-action="CategoryEnable" asp-route-id="@item.MAIN_CAT_ID" class="btn btn-sm btn-success" onclick="return confirm('確定要恢復啟用這筆資料嗎？');">
+                            啟用
+                        </a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // 等待 HTML 畫面完全載入後執行
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // 從後端接收成功或錯誤訊息 (Razor 語法轉成 JavaScript 字串)
+            var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
+            var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+
+            // 如果有成功訊息，彈出綠色打勾視窗
+            if (successMsg) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '成功！',
+                    text: successMsg,
+                    confirmButtonColor: '#3085d6'
+                });
+            }
+
+            // 如果有錯誤訊息，彈出紅色叉叉視窗
+            if (errorMsg) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '停用失敗！',
+                    text: errorMsg,
+                    confirmButtonColor: '#d33'
+                });
+            }
+        });
+    </script>
+}
+
