@@ -174,11 +174,45 @@ namespace Web_EAMSystem.Controllers
             var category = _context.SubAssetCategories.Find(id);
             if (category == null) return NotFound();
 
-            return View("SubCategoryEdit");
+            // 1.資料庫撈取「大類資料」。
+            // 讓使用者選擇「尚未停用(IsDisabled == false)」的大類
+            var mainCategories = _context.AssetCategories
+                .Where(c => c.IsDisabled == false)
+                .Select(c => new
+                {
+                    // 我們只需要代號當作存檔的值 (Value)
+                    MAIN_CAT_CODE = c.MAIN_CAT_CODE,
+                    // 為了讓使用者體驗更好，我們把代號跟名稱合併顯示，例如："COMP - 電腦設備"
+                    DisplayText = c.MAIN_CAT_CODE + " - " + c.MAIN_CAT_NAME
+                })
+                .ToList();
+
+            // 2. 將撈出來的資料轉換成前端 <select> 需要的 SelectList 物件
+            // 參數解釋：(資料來源, `<option>` 的 value 屬性對應欄位, `<option>` 的顯示文字對應欄位)
+            ViewBag.MainCategoryList = new SelectList(mainCategories, "MAIN_CAT_CODE", "DisplayText");
+
+            return View("SubCategoryEdit",category);
         }
         [HttpPost]
         public IActionResult SubCategoryEdit(Guid id, SubAssetCategory category)
         {
+            // 1.資料庫撈取「大類資料」。
+            // 讓使用者選擇「尚未停用(IsDisabled == false)」的大類
+            var mainCategories = _context.AssetCategories
+                .Where(c => c.IsDisabled == false)
+                .Select(c => new
+                {
+                    // 我們只需要代號當作存檔的值 (Value)
+                    MAIN_CAT_CODE = c.MAIN_CAT_CODE,
+                    // 為了讓使用者體驗更好，我們把代號跟名稱合併顯示，例如："COMP - 電腦設備"
+                    DisplayText = c.MAIN_CAT_CODE + " - " + c.MAIN_CAT_NAME
+                })
+                .ToList();
+
+            // 2. 將撈出來的資料轉換成前端 <select> 需要的 SelectList 物件
+            // 參數解釋：(資料來源, `<option>` 的 value 屬性對應欄位, `<option>` 的顯示文字對應欄位)
+            ViewBag.MainCategoryList = new SelectList(mainCategories, "MAIN_CAT_CODE", "DisplayText");
+
             var currentUser = GetCurrentUser();
             // 排除不需要驗證的欄位 (因為這些是系統產生的或是舊資料)
             ModelState.Remove("CreatedDate");
@@ -197,18 +231,19 @@ namespace Web_EAMSystem.Controllers
                     //  檢查是否有「其他筆資料」用了同樣的代號或名稱 (要排除自己)
                     bool isDuplicate = _context.SubAssetCategories.Any(c =>
                         c.SUB_CAT_ID != id &&
-                        (c.SUB_CAT_CODE == category.SUB_CAT_CODE || c.SUB_CAT_NAME == category.SUB_CAT_NAME));
+                        (c.SUB_CAT_CODE == category.SUB_CAT_CODE && c.SUB_CAT_NAME == category.SUB_CAT_NAME && c.MAIN_CAT_CODE==category.MAIN_CAT_CODE));
 
                     if (isDuplicate)
                     {
-                        TempData["ErrorMessage"] = "修改失敗！資料庫中已存在相同的大類代號或名稱。";
-                        return View("CategoryEdit", category);
+                        TempData["ErrorMessage"] = "修改失敗！資料庫中已存在相同的類別資料。";
+                        return View("SubCategoryEdit", category);
                     }
 
                     //  標準更新流程：先從資料庫拿出舊包裹，再把新東西塞進去
                     var existingCategory = _context.SubAssetCategories.Find(id);
                     if (existingCategory != null)
                     {
+                        existingCategory.MAIN_CAT_CODE = category.MAIN_CAT_CODE;
                         existingCategory.SUB_CAT_NAME = category.SUB_CAT_NAME;
                         existingCategory.SUB_CAT_CODE = category.SUB_CAT_CODE;
                         existingCategory.ModifierId = currentUser.UserId; // 畫面上填寫的異動者，之後改為登入者
@@ -220,7 +255,7 @@ namespace Web_EAMSystem.Controllers
 
                         TempData["SuccessMessage"] = "資料修改成功！";
 
-                        return RedirectToAction(nameof(SubCategoryEdit)); // 修改完，自動跳回列表頁！
+                        return RedirectToAction(nameof(SubCategoryEdit)); 
                     }
                 }
                 catch (Exception ex)
