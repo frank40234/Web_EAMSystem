@@ -1,0 +1,50 @@
+﻿@model Web_EAMSystem.Models.ItemName
+
+@{
+    ViewData["Title"] = "修改品名資料";
+}
+
+<h2>修改品名資料</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="ItemNameEdit">
+            <input type="hidden" asp-for="IN_ID" />
+
+            <div class="form-group mb-3">
+                <label asp-for="IN_CODE" class="control-label">大類代號</label>
+                <input asp-for="IN_CODE" class="form-control" />
+                <span asp-validation-for="IN_CODE" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="IN" class="control-label">大類名稱</label>
+                <input asp-for="IN" class="form-control" />
+                <span asp-validation-for="IN" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="儲存修改" class="btn btn-primary" onclick="return confirm('確定要儲存這筆修改嗎？');" />
+                <a asp-action="ItemNameIndex" class="btn btn-secondary">返回列表</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
+            var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+
+            if (successMsg) {
+                Swal.fire({ icon: 'success', title: '成功！', text: successMsg, confirmButtonColor: '#3085d6' });
+            }
+            if (errorMsg) {
+                Swal.fire({ icon: 'error', title: '編輯失敗！', text: errorMsg, confirmButtonColor: '#d33' });
+            }
+        });
+    </script>
+}
