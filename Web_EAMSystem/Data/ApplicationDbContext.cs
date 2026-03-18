@@ -16,5 +16,6 @@ namespace Web_EAMSystem.Data
         // 裡面的欄位就是依照我們剛才寫的 AssetCategory 藍圖來產生
         public DbSet<AssetCategory> AssetCategories { get; set; }
         public DbSet<SubAssetCategory> SubAssetCategories { get; set; }
+        public DbSet<AssetUnit> AssetUnits { get; set; }
     }
 }

@@ -47,6 +47,7 @@
             <th>大類名稱</th>
             <th>建檔者</th>
             <th>建檔日期</th>
+            <th>異動日期</th>
             <th>狀態</th>
             <th>操作選項</th>
         </tr>
@@ -59,6 +60,7 @@
                 <td>@item.MAIN_CAT_NAME</td>
                 <td>@item.Creator</td>
                 <td>@item.CreatedDate.ToString("yyyy-MM-dd")</td>
+                <td>@item.ModifiedDate.ToString("yyyy-MM-dd")</td>
 
                 <td>
                     @if (item.IsDisabled)

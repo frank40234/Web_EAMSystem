@@ -26,7 +26,8 @@ namespace Web_EAMSystem.Controllers
         /// <returns></returns>
         [HttpGet]
         public IActionResult CategoryIndex(string searchBy,string keyword,string statusFilter)
-        {//建立基礎查詢草稿
+        {
+            //建立基礎查詢草稿
             var query = _context.AssetCategories.AsQueryable();
 
             // 如果使用者有輸入關鍵字，我們就根據選擇的欄位加入過濾條件
@@ -55,7 +56,7 @@ namespace Web_EAMSystem.Controllers
                 query = query.Where(c => c.IsDisabled == true);  // 只找已停用
             }
 
-            // 3. 🌟 新增：多重排序 (先按狀態排，再按日期排)
+            // 3. 新增：多重排序 (先按狀態排，再按日期排)
             // OrderBy(IsDisabled)：false(0/使用中) 會排在 true(1/已停用) 的前面！
             // ThenByDescending(CreatedDate)：同狀態的資料，越新的排越上面！
             var categories = query.OrderBy(c => c.IsDisabled)
@@ -182,8 +183,6 @@ namespace Web_EAMSystem.Controllers
             ModelState.Remove("ModifierId");
             ModelState.Remove("Modifier");
             
-
-
             if (ModelState.IsValid)
             {
                 try
@@ -230,6 +229,7 @@ namespace Web_EAMSystem.Controllers
 
             return View("CategoryEdit", category);
         }
+
         /// <summary>
         /// 停用大類
         /// </summary>
