@@ -58,7 +58,7 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@item.MAIN_CAT_CODE</td>
+                <td>@item.AssetCategory?.MAIN_CAT_CODE</td>
                 <td>@item.SUB_CAT_CODE</td>
                 <td>@item.SUB_CAT_NAME</td>
                 <td>@item.Creator</td>

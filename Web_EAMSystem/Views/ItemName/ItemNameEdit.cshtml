@@ -12,13 +12,9 @@
         <form asp-action="ItemNameEdit">
             <input type="hidden" asp-for="IN_ID" />
 
-            <div class="form-group mb-3">
-                <label asp-for="SUB_CAT_CODE" class="control-label">所屬類別</label>
-                <select asp-for="SUB_CAT_CODE" id="subCategorySelect" class="form-select" asp-items="@ViewBag.SubCategoryList">
-                    <option value="">-- 請選擇所屬類別 --</option>
-                </select>
-                <span asp-validation-for="SUB_CAT_CODE" class="text-danger"></span>
-            </div>
+            <select asp-for="SUB_CAT_ID" asp-items="ViewBag.SubCategoryList" class="form-control">
+                <option value="">請選擇大類...</option>
+            </select>
 
             <div class="form-group mb-3">
                 <label asp-for="IN_CODE" class="control-label">品名代號</label>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Web_EAMSystem.Data;
 
@@ -11,9 +12,11 @@ using Web_EAMSystem.Data;
 namespace Web_EAMSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319063121_FixCategoryForeignKey")]
+    partial class FixCategoryForeignKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,10 +82,17 @@ namespace Web_EAMSystem.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ASSET_CODE")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("nvarchar(14)");
+
+                    b.Property<string>("ASSET_UNIT_CODE")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<string>("BRAND")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -90,21 +100,35 @@ namespace Web_EAMSystem.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Creator")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("CreatorId")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<Guid?>("IN_ID")
+                    b.Property<string>("IN")
                         .IsRequired()
-                        .HasColumnType("uniqueidentifier");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("IN_CODE")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
 
                     b.Property<bool>("IsDisabled")
                         .HasColumnType("bit");
 
+                    b.Property<string>("MAIN_CAT_CODE")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
                     b.Property<string>("MODEL")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -112,22 +136,26 @@ namespace Web_EAMSystem.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Modifier")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("ModifierId")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<Guid?>("UNIT_ID")
+                    b.Property<string>("SPEC")
                         .IsRequired()
-                        .HasColumnType("uniqueidentifier");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("SUB_CAT_CODE")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
 
                     b.HasKey("ASSET_ID");
-
-                    b.HasIndex("IN_ID");
-
-                    b.HasIndex("UNIT_ID");
 
                     b.ToTable("AssetInfos");
                 });
@@ -290,25 +318,6 @@ namespace Web_EAMSystem.Migrations
                     b.HasIndex("MAIN_CAT_ID");
 
                     b.ToTable("SubAssetCategories");
-                });
-
-            modelBuilder.Entity("Web_EAMSystem.Models.AssetInfo", b =>
-                {
-                    b.HasOne("Web_EAMSystem.Models.ItemName", "ItemName")
-                        .WithMany()
-                        .HasForeignKey("IN_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Web_EAMSystem.Models.AssetUnit", "AssetUnit")
-                        .WithMany()
-                        .HasForeignKey("UNIT_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AssetUnit");
-
-                    b.Navigation("ItemName");
                 });
 
             modelBuilder.Entity("Web_EAMSystem.Models.ItemName", b =>

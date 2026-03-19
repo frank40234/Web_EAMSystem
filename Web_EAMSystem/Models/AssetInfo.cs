@@ -1,75 +1,59 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Web_EAMSystem.Models
 {
     public class AssetInfo
     {
+        // 1. GUID (主鍵)
         [Key]
-        public Guid ASSET_ID{  get; set; }
+        public Guid ASSET_ID { get; set; }
 
-        [MaxLength(14)]
-        public string ASSET_CODE { get; set; }
+        // 2. 物料編碼 (自動產生，如：COMP-NB-MAC-0001)
+        [MaxLength(30)]
+        public string? ASSET_CODE { get; set; } // 允許空值，因為存檔前由系統自動填入
 
-        //大類代號
-        [Required(ErrorMessage = "請輸入大類代號")]
-        [MaxLength(2)]
-        public string MAIN_CAT_CODE { get; set; }
+        // 3. 品名關聯 (透過品名，就能抓到類別與大類)
+        [Required(ErrorMessage = "請選擇品名")]
+        public Guid? IN_ID { get; set; }
 
-        //類別代號
-        [Required(ErrorMessage = "請輸入類別代號")]
-        [MaxLength(2)]
-        public string SUB_CAT_CODE { get; set; }
+        [ForeignKey("IN_ID")]
+        public ItemName? ItemName { get; set; }
 
-        //品名代號
-        [Required(ErrorMessage = "請輸入品名代號")]
-        [MaxLength(3)]
-        public string IN_CODE { get; set; }
-
-        //品名
-        [Required(ErrorMessage = "請輸入品名")]
-        [MaxLength(20)]
-        public string IN { get; set; }
-
-        //品名代號
-        [Required(ErrorMessage = "請輸入型號")]
+        // 4. 型號
         [MaxLength(50)]
-        public string MODEL { get; set; }
+        public string? MODEL { get; set; }
 
-        //規格
-        [Required(ErrorMessage = "請輸入規格")]
+        // 5. 廠牌
         [MaxLength(50)]
-        public string SPEC { get; set; }
+        public string? BRAND { get; set; }
 
-        //品名代號
-        [Required(ErrorMessage = "請輸入廠牌")]
-        [MaxLength(50)]
-        public string BRAND { get; set; }
+        // 6. 標準單位 (關聯到 AssetUnit)
+        [Required(ErrorMessage = "請選擇標準單位")]
+        public Guid? UNIT_ID { get; set; }
 
-        [Required(ErrorMessage = "請輸入單位")]
-        [MaxLength(5)]
-        public string ASSET_UNIT_CODE { get; set; }
+        [ForeignKey("UNIT_ID")]
+        public AssetUnit? AssetUnit { get; set; }
 
-        //建檔者
+        // --- 以下為系統共用的稽核與狀態欄位 ---
+
         [MaxLength(10)]
-        public string Creator { get; set; }
-        //建檔者工號
-        [MaxLength(10)]
-        public string CreatorId { get; set; }
+        public string? Creator { get; set; }
 
-        //建檔日期
+        [MaxLength(10)]
+        public string? CreatorId { get; set; }
+
         public DateTime CreatedDate { get; set; }
 
-        //修改者
         [MaxLength(10)]
-        public string Modifier { get; set; }
-        //修改者ID
-        [MaxLength(10)]
-        public string ModifierId { get; set; }
+        public string? Modifier { get; set; }
 
-        // 7. 異動日期 (使用 DateTime? 允許空值 Nullable)
+        [MaxLength(10)]
+        public string? ModifierId { get; set; }
+
         public DateTime ModifiedDate { get; set; }
 
-        // 8. 狀態(是否停用) - True代表停用，False代表啟用
+        // 7. 狀態(是否停用)
         public bool IsDisabled { get; set; }
     }
 }

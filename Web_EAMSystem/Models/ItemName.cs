@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Web_EAMSystem.Models
 {
@@ -7,9 +8,11 @@ namespace Web_EAMSystem.Models
         //GUID 
         [Key]
         public Guid IN_ID { get; set; }
+        public Guid? SUB_CAT_ID { get; set; }
 
-        [MaxLength(2)]
-        public string SUB_CAT_CODE { get; set; }
+        // 2. 導覽屬性對應新的外鍵名稱
+        [ForeignKey("SUB_CAT_ID")]
+        public SubAssetCategory? SubAssetCategory { get; set; }
 
         //品名
         [Required(ErrorMessage = "請輸入品名")]
