@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using Web_EAMSystem.Data;
 using Web_EAMSystem.Models;
@@ -24,6 +25,23 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult ItemNameIndex(string searchBy, string keyword, string statusFilter)
         {
+            // 1.資料庫撈取「大類資料」。
+            // 讓使用者選擇「尚未停用(IsDisabled == false)」的大類
+            var subCategories = _context.SubAssetCategories
+                .Where(c => c.IsDisabled == false)
+                .Select(c => new
+                {
+                    // 我們只需要代號當作存檔的值 (Value)
+                    SUB_CAT_CODE = c.SUB_CAT_CODE,
+
+                    SUB_CAT_NAME = c.SUB_CAT_NAME,
+                    // 為了讓使用者體驗更好，我們把代號跟名稱合併顯示，例如："COMP - 電腦設備"
+                    DisplayText = c.SUB_CAT_CODE + " - " + c.SUB_CAT_NAME
+                })
+                .ToList();
+            // 2. 將撈出來的資料轉換成前端 <select> 需要的 SelectList 物件
+            // 參數解釋：(資料來源, `<option>` 的 value 屬性對應欄位, `<option>` 的顯示文字對應欄位)
+            ViewBag.SubCategoryList = new SelectList(subCategories, "SUB_CAT_CODE", "DisplayText");
             //建立基礎查詢草稿
             var query = _context.ItemNames.AsQueryable();
 
@@ -43,6 +61,10 @@ namespace Web_EAMSystem.Controllers
                 {
                     query = query.Where(c => c.Creator.Contains(keyword));
                 }
+                else if (searchBy == "SUB_CAT_CODE")
+                {
+                    query = query.Where(c => c.SUB_CAT_CODE.Contains(keyword));
+                }
             }
             if (statusFilter == "Active")
             {
@@ -57,8 +79,10 @@ namespace Web_EAMSystem.Controllers
             // OrderBy(IsDisabled)：false(0/使用中) 會排在 true(1/已停用) 的前面！
             // ThenByDescending(CreatedDate)：同狀態的資料，越新的排越上面！
             var itemNameSort = query.OrderBy(c => c.IsDisabled)
-                                  .ThenByDescending(c => c.CreatedDate)
-                                  .ToList();
+                                    .ThenBy(c => c.SUB_CAT_CODE) // 加入此行，依子類別代碼正序排列
+                                    .ThenBy(c => c.IN)
+                                    .ThenBy(c => c.IN_CODE)
+                                    .ToList();
 
             // 4.利用 ViewBag 把剛剛搜尋的條件存起來傳回畫面
             // 這樣使用者搜完之後，下拉選單跟輸入框才不會變回空白
@@ -76,6 +100,22 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult ItemNameCreate()
         {
+            // 1.資料庫撈取「大類資料」。
+            // 讓使用者選擇「尚未停用(IsDisabled == false)」的大類
+            var subCategories = _context.SubAssetCategories
+                .Where(c => c.IsDisabled == false)
+                .Select(c => new
+                {
+                    // 我們只需要代號當作存檔的值 (Value)
+                    SUB_CAT_CODE = c.SUB_CAT_CODE,
+                    // 為了讓使用者體驗更好，我們把代號跟名稱合併顯示，例如："COMP - 電腦設備"
+                    DisplayText = c.SUB_CAT_CODE + " - " + c.SUB_CAT_NAME
+                })
+                .ToList();
+            // 2. 將撈出來的資料轉換成前端 <select> 需要的 SelectList 物件
+            // 參數解釋：(資料來源, `<option>` 的 value 屬性對應欄位, `<option>` 的顯示文字對應欄位)
+            ViewBag.SubCategoryList = new SelectList(subCategories, "SUB_CAT_CODE", "DisplayText");
+
             return View("ItemNameCreate");
         }
         // 2. POST: 負責接收使用者填寫的資料，並存入資料庫
@@ -83,10 +123,23 @@ namespace Web_EAMSystem.Controllers
         [ValidateAntiForgeryToken] // 資安防護：防止跨站請求偽造 (CSRF) 攻擊
         public IActionResult ItemNameCreate(ItemName itemName)
         {
+            // 1.資料庫撈取「大類資料」。
+            // 讓使用者選擇「尚未停用(IsDisabled == false)」的大類
+            var subCategories = _context.SubAssetCategories
+                .Where(c => c.IsDisabled == false)
+                .Select(c => new
+                {
+                    // 我們只需要代號當作存檔的值 (Value)
+                    SUB_CAT_CODE = c.SUB_CAT_CODE,
+                    // 為了讓使用者體驗更好，我們把代號跟名稱合併顯示，例如："COMP - 電腦設備"
+                    DisplayText = c.SUB_CAT_CODE + " - " + c.SUB_CAT_NAME
+                })
+                .ToList();
+            ViewBag.SubCategoryList = new SelectList(subCategories, "SUB_CAT_CODE", "DisplayText");
             // 防呆機制：檢查資料庫是否已有重複資料
             // ==========================================
             bool isDuplicate = _context.ItemNames.Any(c =>
-                c.IN_CODE == itemName.IN_CODE ||
+                c.IN_CODE == itemName.IN_CODE &&
                 c.IN == itemName.IN);
 
             var currentUser = GetCurrentUser();
@@ -159,6 +212,21 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult ItemNameEdit(Guid id)
         {
+            // 1.資料庫撈取「大類資料」。
+            // 讓使用者選擇「尚未停用(IsDisabled == false)」的大類
+            var subCategories = _context.SubAssetCategories
+                .Where(c => c.IsDisabled == false)
+                .Select(c => new
+                {
+                    // 我們只需要代號當作存檔的值 (Value)
+                    SUB_CAT_CODE = c.SUB_CAT_CODE,
+                    // 為了讓使用者體驗更好，我們把代號跟名稱合併顯示，例如："COMP - 電腦設備"
+                    DisplayText = c.SUB_CAT_CODE + " - " + c.SUB_CAT_NAME
+                })
+                .ToList();
+            // 2. 將撈出來的資料轉換成前端 <select> 需要的 SelectList 物件
+            // 參數解釋：(資料來源, `<option>` 的 value 屬性對應欄位, `<option>` 的顯示文字對應欄位)
+            ViewBag.SubCategoryList = new SelectList(subCategories, "SUB_CAT_CODE", "DisplayText");
 
             if (id == null) return NotFound();
 
@@ -171,6 +239,22 @@ namespace Web_EAMSystem.Controllers
         [HttpPost]
         public IActionResult ItemNameEdit(Guid id, ItemName itemName)
         {
+            // 1.資料庫撈取「大類資料」。
+            // 讓使用者選擇「尚未停用(IsDisabled == false)」的大類
+            var subCategories = _context.SubAssetCategories
+                .Where(c => c.IsDisabled == false)
+                .Select(c => new
+                {
+                    // 我們只需要代號當作存檔的值 (Value)
+                    SUB_CAT_CODE = c.SUB_CAT_CODE,
+                    // 為了讓使用者體驗更好，我們把代號跟名稱合併顯示，例如："COMP - 電腦設備"
+                    DisplayText = c.SUB_CAT_CODE + " - " + c.SUB_CAT_NAME
+                })
+                .ToList();
+            // 2. 將撈出來的資料轉換成前端 <select> 需要的 SelectList 物件
+            // 參數解釋：(資料來源, `<option>` 的 value 屬性對應欄位, `<option>` 的顯示文字對應欄位)
+            ViewBag.SubCategoryList = new SelectList(subCategories, "SUB_CAT_CODE", "DisplayText");
+
             var currentUser = GetCurrentUser();
             // 排除不需要驗證的欄位 (因為這些是系統產生的或是舊資料)
             ModelState.Remove("CreatedDate");
@@ -187,7 +271,7 @@ namespace Web_EAMSystem.Controllers
                     //  檢查是否有「其他筆資料」用了同樣的代號或名稱 (要排除自己)
                     bool isDuplicate = _context.ItemNames.Any(c =>
                         c.IN_ID != id &&
-                        (c.IN_CODE == itemName.IN_CODE || c.IN == itemName.IN));
+                        (c.IN_CODE == itemName.IN_CODE && c.IN == itemName.IN));
 
                     if (isDuplicate)
                     {
@@ -199,6 +283,7 @@ namespace Web_EAMSystem.Controllers
                     var existingItemName = _context.ItemNames.Find(id);
                     if (existingItemName != null)
                     {
+                        existingItemName.SUB_CAT_CODE = itemName.SUB_CAT_CODE;
                         existingItemName.IN = itemName.IN;
                         existingItemName.IN_CODE = itemName.IN_CODE;
                         existingItemName.ModifierId = currentUser.UserId; // 畫面上填寫的異動者，之後改為登入者

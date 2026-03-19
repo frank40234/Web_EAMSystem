@@ -83,22 +83,19 @@ namespace Web_EAMSystem.Controllers
 
             return View("SubCategoryCreate");
         }
+
         // 2. POST: 負責接收使用者填寫的資料，並存入資料庫
         [HttpPost]
         [ValidateAntiForgeryToken] // 資安防護：防止跨站請求偽造 (CSRF) 攻擊
         public IActionResult SubCategoryCreate(SubAssetCategory subCategory )
         {
 
-
-
             // 防呆機制：檢查資料庫是否已有重複資料
             // ==========================================
             bool isDuplicate = _context.SubAssetCategories.Any(c =>
-                c.SUB_CAT_CODE == subCategory.SUB_CAT_CODE ||
-                c.SUB_CAT_NAME == subCategory.SUB_CAT_NAME);
+                (c.SUB_CAT_CODE == subCategory.SUB_CAT_CODE || c.SUB_CAT_NAME == subCategory.SUB_CAT_NAME && c.MAIN_CAT_CODE == subCategory.MAIN_CAT_CODE));
 
             var currentUser = GetCurrentUser();
-
 
             if (isDuplicate)
             {
@@ -231,7 +228,7 @@ namespace Web_EAMSystem.Controllers
                     //  檢查是否有「其他筆資料」用了同樣的代號或名稱 (要排除自己)
                     bool isDuplicate = _context.SubAssetCategories.Any(c =>
                         c.SUB_CAT_ID != id &&
-                        (c.SUB_CAT_CODE == category.SUB_CAT_CODE && c.SUB_CAT_NAME == category.SUB_CAT_NAME && c.MAIN_CAT_CODE==category.MAIN_CAT_CODE));
+                        (c.SUB_CAT_CODE == category.SUB_CAT_CODE || c.SUB_CAT_NAME == category.SUB_CAT_NAME && c.MAIN_CAT_CODE==category.MAIN_CAT_CODE));
 
                     if (isDuplicate)
                     {

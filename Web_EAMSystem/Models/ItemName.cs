@@ -8,32 +8,35 @@ namespace Web_EAMSystem.Models
         [Key]
         public Guid IN_ID { get; set; }
 
-        //大類名稱
+        [MaxLength(2)]
+        public string SUB_CAT_CODE { get; set; }
+
+        //品名
         [Required(ErrorMessage = "請輸入品名")]
         [MaxLength(20)]
         public string IN { get; set; }
 
-        //大類代號
+        //品名代號
         [Required(ErrorMessage = "請輸入品名代號")]
         [MaxLength(3)]
         public string IN_CODE { get; set; }
 
         //建檔者
         [Required(ErrorMessage = "請輸入姓名")]
-        [MaxLength(50)]
+        [MaxLength(10)]
         public string Creator { get; set; }
         //建檔者工號
-        [MaxLength(25)]
+        [MaxLength(10)]
         public string CreatorId { get; set; }
 
         //建檔日期
         public DateTime CreatedDate { get; set; }
 
         //修改者
-        [MaxLength(50)]
+        [MaxLength(10)]
         public string Modifier { get; set; }
         //修改者ID
-        [MaxLength(25)]
+        [MaxLength(10)]
         public string ModifierId { get; set; }
 
         // 7. 異動日期 (使用 DateTime? 允許空值 Nullable)

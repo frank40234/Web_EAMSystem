@@ -18,5 +18,6 @@ namespace Web_EAMSystem.Data
         public DbSet<SubAssetCategory> SubAssetCategories { get; set; }
         public DbSet<AssetUnit> AssetUnits { get; set; }
         public DbSet<ItemName> ItemNames { get; set; }
+        public DbSet<AssetInfo> AssetInfos { get; set; }
     }
 }
