@@ -27,7 +27,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult CategoryIndex(string searchBy,string keyword,string statusFilter)
         {
-            TempData.Clear();
+            
             //建立基礎查詢草稿
             var query = _context.AssetCategories.AsQueryable();
 
@@ -80,7 +80,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult CategoryCreate()
         {
-            TempData.Clear();
+            
             return View("CategoryCreate");
         }
         // 2. POST: 負責接收使用者填寫的資料，並存入資料庫
@@ -88,7 +88,7 @@ namespace Web_EAMSystem.Controllers
         [ValidateAntiForgeryToken] // 資安防護：防止跨站請求偽造 (CSRF) 攻擊
         public IActionResult CategoryCreate(AssetCategory category)
         {
-            TempData.Clear();
+            
             // 防呆機制：檢查資料庫是否已有重複資料
             // ==========================================
             bool isDuplicate = _context.AssetCategories.Any(c =>
@@ -165,7 +165,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult CategoryEdit(Guid id)
         {
-            TempData.Clear();
+            
             if (id == null) return NotFound(); 
 
             //於資料庫查詢此筆資料
@@ -177,7 +177,7 @@ namespace Web_EAMSystem.Controllers
         [HttpPost]
         public IActionResult CategoryEdit(Guid id , AssetCategory category)
         {
-            TempData.Clear();
+            
             var currentUser = GetCurrentUser();
             // 排除不需要驗證的欄位 (因為這些是系統產生的或是舊資料)
             ModelState.Remove("CreatedDate");
@@ -242,7 +242,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult CategoryDisable(Guid id)
         {
-            TempData.Clear();
+            
             // 1. 去資料庫把這筆資料找出來
             var category = _context.AssetCategories.Find(id);
 
@@ -283,7 +283,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult CategoryEnable(Guid id)
         {
-            TempData.Clear();
+            
             var category = _context.AssetCategories.Find(id);
             if (category == null) return NotFound();
 

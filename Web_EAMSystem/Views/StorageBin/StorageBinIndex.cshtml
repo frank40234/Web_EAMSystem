@@ -1,0 +1,97 @@
+﻿@model IEnumerable<Web_EAMSystem.Models.StorageBin>
+
+@{
+    ViewData["Title"] = "儲位資料清單";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>儲位資料維護</h2>
+    <a asp-action="StorageBinCreate" class="btn btn-success"> + 新增儲位</a>
+</div>
+
+<form method="get" asp-action="StorageBinIndex" class="mb-3">
+    <div class="row g-2 align-items-center">
+
+        <div class="col-auto">
+            <select name="roomFilter" class="form-select" asp-items="ViewBag.RoomList">
+                <option value="">-- 全部資材室 --</option>
+            </select>
+        </div>
+
+        <div class="col-auto">
+            <input type="text" name="keyword" class="form-control" placeholder="搜尋儲位代號..." value="@ViewBag.CurrentKeyword" />
+        </div>
+
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">🔍 搜尋</button>
+            <a asp-action="StorageBinIndex" class="btn btn-outline-secondary">清除條件</a>
+        </div>
+    </div>
+</form>
+<hr />
+
+<table class="table table-striped table-hover mt-3">
+    <thead class="table-dark">
+        <tr>
+            <th>所屬資材室</th>
+            <th>完整儲位代號</th>
+            <th>建檔者</th>
+            <th>建檔日期</th>
+            <th>狀態</th>
+            <th>操作選項</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td><span class="badge bg-info text-dark fs-6">@item.StoreRoom?.ROOM_NAME</span></td>
+
+                <td><strong>@item.BIN_CODE</strong></td>
+
+                <td>@item.Creator</td>
+                <td>@item.CreatedDate.ToString("yyyy-MM-dd HH:mm")</td>
+
+                <td>
+                    @if (item.IsDisabled)
+                    {
+                        <span class="badge bg-danger">已停用</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">使用中</span>
+                    }
+                </td>
+
+                <td>
+
+                    @if (!item.IsDisabled)
+                    {
+                        <a asp-action="StorageBinDisable" asp-route-id="@item.BIN_ID" class="btn btn-sm btn-warning" onclick="return confirm('確定要停用這筆儲位嗎？');">停用</a>
+                    }
+                    else
+                    {
+                        <a asp-action="StorageBinEnable" asp-route-id="@item.BIN_ID" class="btn btn-sm btn-success" onclick="return confirm('確定要恢復啟用嗎？');">啟用</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
+            var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+
+            if (successMsg) {
+                Swal.fire({ icon: 'success', title: '成功！', text: successMsg, confirmButtonColor: '#3085d6' });
+            }
+            if (errorMsg) {
+                Swal.fire({ icon: 'error', title: '發生錯誤！', text: errorMsg, confirmButtonColor: '#d33' });
+            }
+        });
+    </script>
+}

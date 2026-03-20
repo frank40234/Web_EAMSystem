@@ -22,7 +22,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult AssetIndex(string searchBy, string keyword, string statusFilter)
         {
-            TempData.Clear();
+            
             // 因為畫面需要顯示大類、類別、品名和單位名稱，我們必須把它們全部 Include 進來！
             var query = _context.AssetInfos
                 .Include(a => a.AssetUnit)
@@ -63,7 +63,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult AssetCreate()
         {
-            TempData.Clear();
+            
             // 準備大類下拉選單 (給 AJAX 連動當起點用)
             var mainCategories = _context.AssetCategories.Where(c => c.IsDisabled == false).ToList();
             ViewBag.MainCategoryList = new SelectList(mainCategories, "MAIN_CAT_ID", "MAIN_CAT_NAME");
@@ -79,7 +79,7 @@ namespace Web_EAMSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AssetCreate(AssetInfo assetInfo)
         {
-            TempData.Clear();
+            
             var currentUser = GetCurrentUser();
 
             // 排除系統自動產生或無需驗證的欄位
