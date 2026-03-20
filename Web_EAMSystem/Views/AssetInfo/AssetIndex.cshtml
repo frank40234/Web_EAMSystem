@@ -1,10 +1,119 @@
-﻿
+﻿@model IEnumerable<Web_EAMSystem.Models.AssetInfo>
 
 @{
-    ViewData["Title"] = "單位資料清單";
+    ViewData["Title"] = "物料清單維護";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>單位資料維護</h2>
-    <a asp-action="AssetCreate" class="btn btn-success"> + 新增單位資料</a>
+    <h2>物料清單維護</h2>
+    <a asp-action="AssetCreate" class="btn btn-success"> + 新增物料清單</a>
 </div>
+
+<form method="get" asp-action="AssetIndex" class="mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col-auto">
+            <select name="searchBy" class="form-select">
+                <option value="ASSET_CODE" selected="@(ViewBag.CurrentSearchBy == "ASSET_CODE")">物料編碼</option>
+                <option value="MODEL" selected="@(ViewBag.CurrentSearchBy == "MODEL")">型號</option>
+                <option value="BRAND" selected="@(ViewBag.CurrentSearchBy == "BRAND")">廠牌</option>
+            </select>
+        </div>
+        
+        <div class="col-auto">
+            <select name="statusFilter" class="form-select">
+                <option value="All" selected="@(ViewBag.CurrentStatusFilter == "All" || string.IsNullOrEmpty(ViewBag.CurrentStatusFilter))">全部狀態</option>
+                <option value="Active" selected="@(ViewBag.CurrentStatusFilter == "Active")">僅顯示使用中</option>
+                <option value="Disabled" selected="@(ViewBag.CurrentStatusFilter == "Disabled")">僅顯示已停用</option>
+            </select>
+        </div>
+
+        <div class="col-auto">
+            <input type="text" name="keyword" class="form-control" placeholder="請輸入關鍵字..." value="@ViewBag.CurrentKeyword" />
+        </div>
+
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">🔍 搜尋</button>
+            <a asp-action="AssetIndex" class="btn btn-outline-secondary">清除條件</a>
+        </div>
+    </div>
+</form>
+<hr />
+
+<table class="table table-striped table-hover mt-3">
+    <thead class="table-dark">
+        <tr>
+            <th>物料編碼</th>
+            <th>大類代號</th>
+            <th>大類</th>
+            <th>類別代號</th>
+            <th>類別</th>
+            <th>品名</th>
+            <th>品名代號</th>
+            <th>型號</th>
+            <th>廠牌</th>
+            <th>單位</th>
+            <th>狀態</th>
+            <th>操作選項</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td><strong>@item.ASSET_CODE</strong></td>
+                
+                <td>@item.ItemName?.SubAssetCategory?.AssetCategory?.MAIN_CAT_CODE</td>
+                <td>@item.ItemName?.SubAssetCategory?.AssetCategory?.MAIN_CAT_NAME</td>
+                <td>@item.ItemName?.SubAssetCategory?.SUB_CAT_CODE</td>
+                <td>@item.ItemName?.SubAssetCategory?.SUB_CAT_NAME</td>
+                <td>@item.ItemName?.IN</td>
+                <th>@item.ItemName?.IN_CODE</th>
+                
+                <td>@item.MODEL</td>
+                <td>@item.BRAND</td>
+                <td>@item.AssetUnit?.ASSET_UNIT</td>
+
+                <td>
+                    @if (item.IsDisabled)
+                    {
+                        <span class="badge bg-danger">已停用</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">使用中</span>
+                    }
+                </td>
+
+                <td>
+                    <a asp-action="AssetEdit" asp-route-id="@item.ASSET_ID" class="btn btn-sm btn-primary">修改</a>
+
+                    @if (!item.IsDisabled)
+                    {
+                        <a asp-action="AssetDisable" asp-route-id="@item.ASSET_ID" class="btn btn-sm btn-warning" onclick="return confirm('確定要停用這筆資料嗎？');">停用</a>
+                    }
+                    else
+                    {
+                        <a asp-action="AssetEnable" asp-route-id="@item.ASSET_ID" class="btn btn-sm btn-success" onclick="return confirm('確定要恢復啟用這筆資料嗎？');">啟用</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
+            var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+
+            if (successMsg) {
+                Swal.fire({ icon: 'success', title: '成功！', text: successMsg, confirmButtonColor: '#3085d6' });
+            }
+            if (errorMsg) {
+                Swal.fire({ icon: 'error', title: '發生錯誤！', text: errorMsg, confirmButtonColor: '#d33' });
+            }
+        });
+    </script>
+}

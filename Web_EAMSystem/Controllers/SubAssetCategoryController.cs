@@ -18,6 +18,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult SubCategoryIndex(string searchBy, string keyword, string statusFilter)
         {
+            TempData.Clear();
             //建立基礎查詢草稿
             var query = _context.SubAssetCategories.Include(c => c.AssetCategory).AsQueryable();
 
@@ -64,6 +65,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult SubCategoryCreate()
         {
+            TempData.Clear();
             // 1.資料庫撈取「大類資料」。
             // 讓使用者選擇「尚未停用(IsDisabled == false)」的大類
             var Categories = _context.AssetCategories
@@ -88,7 +90,7 @@ namespace Web_EAMSystem.Controllers
         [ValidateAntiForgeryToken] // 資安防護：防止跨站請求偽造 (CSRF) 攻擊
         public IActionResult SubCategoryCreate(SubAssetCategory subCategory )
         {
-
+            TempData.Clear();
             var Categories = _context.AssetCategories
                 .Where(c => c.IsDisabled == false)
                 .Select(c => new
@@ -178,7 +180,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult SubCategoryEdit(Guid id)
         {
-
+            TempData.Clear();
             if (id == null) return NotFound();
 
             //於資料庫查詢此筆資料
@@ -206,6 +208,7 @@ namespace Web_EAMSystem.Controllers
         [HttpPost]
         public IActionResult SubCategoryEdit(Guid id, SubAssetCategory category)
         {
+            TempData.Clear();
             // 1.資料庫撈取「大類資料」。
             // 讓使用者選擇「尚未停用(IsDisabled == false)」的大類
             var Categories = _context.AssetCategories
@@ -289,6 +292,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult SubCategoryDisable(Guid id)
         {
+            TempData.Clear();
             // 1. 去資料庫把這筆資料找出來
             var category = _context.SubAssetCategories.Find(id);
 
@@ -329,6 +333,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult SubCategoryEnable(Guid id)
         {
+            TempData.Clear();
             var category = _context.SubAssetCategories.Find(id);
             if (category == null) return NotFound();
 

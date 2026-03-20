@@ -1,5 +1,54 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Web_EAMSystem.Models.AssetInfo
+
 @{
+    ViewData["Title"] = "修改料號資料";
+}
+
+<h2>修改料號資料</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="AssetEdit">
+            <input type="hidden" asp-for="IN_ID" />
+
+
+            <div class="form-group mb-3">
+                <label asp-for="MODEL" class="control-label">品名代號</label>
+                <input asp-for="MODEL" class="form-control" />
+                <span asp-validation-for="MODEL" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="BRAND" class="control-label">品名</label>
+                <input asp-for="BRAND" class="form-control" />
+                <span asp-validation-for="BRAND" class="text-danger"></span>
+            </div>
+
+            <select asp-for="UNIT_ID" asp-items="ViewBag.UnitList" class="form-control">
+                <option value="">請選擇大類...</option>
+            </select>
+            <div class="form-group mt-3">
+                <input type="submit" value="儲存修改" class="btn btn-primary" onclick="return confirm('確定要儲存這筆修改嗎？');" />
+                <a asp-action="AssetIndex" class="btn btn-secondary">返回列表</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
+            var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+
+            if (successMsg) {
+                Swal.fire({ icon: 'success', title: '成功！', text: successMsg, confirmButtonColor: '#3085d6' });
+            }
+            if (errorMsg) {
+                Swal.fire({ icon: 'error', title: '編輯失敗！', text: errorMsg, confirmButtonColor: '#d33' });
+            }
+        });
+    </script>
 }

@@ -2,7 +2,7 @@
 
 namespace Web_EAMSystem.Controllers
 {
-    public class WareHouseController : Controller
+    public class StoreRoomController : Controller
     {
         public IActionResult Index()
         {

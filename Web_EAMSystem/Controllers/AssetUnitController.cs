@@ -24,6 +24,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult UnitIndex(string searchBy,string keyword,string statusFilter)
         {
+            TempData.Clear();
             //建立基礎查詢草稿
             var query = _context.AssetUnits.AsQueryable();
 
@@ -74,6 +75,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult UnitCreate()
         {
+            TempData.Clear();
             return View("UnitCreate");
         }
         // 2. POST: 負責接收使用者填寫的資料，並存入資料庫
@@ -81,6 +83,7 @@ namespace Web_EAMSystem.Controllers
         [ValidateAntiForgeryToken] // 資安防護：防止跨站請求偽造 (CSRF) 攻擊
         public IActionResult UnitCreate(AssetUnit assetUnit)
         {
+            TempData.Clear();
             // 防呆機制：檢查資料庫是否已有重複資料
             // ==========================================
             bool isDuplicate = _context.AssetUnits.Any(c =>
@@ -150,6 +153,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult UnitEdit(Guid id)
         {
+            TempData.Clear();
             if (id == null) return NotFound();
 
             //於資料庫查詢此資料
@@ -161,6 +165,7 @@ namespace Web_EAMSystem.Controllers
         [HttpPost]
         public IActionResult UnitEdit(Guid id , AssetUnit assetUnit)
         {
+            TempData.Clear();
             var currentUser = GetCurrentUser();
             // 排除不需要的驗證欄位
             ModelState.Remove("CreatedDate");
@@ -219,6 +224,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult UnitDisable(Guid id)
         {
+            TempData.Clear();
             // 1. 去資料庫把這筆資料找出來
             var unit = _context.AssetUnits.Find(id);
 
@@ -259,6 +265,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult UnitEnable(Guid id)
         {
+            TempData.Clear();
             var unit = _context.AssetUnits.Find(id);
             if (unit == null) return NotFound();
 

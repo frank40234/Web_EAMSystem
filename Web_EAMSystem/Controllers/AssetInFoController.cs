@@ -22,6 +22,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult AssetIndex(string searchBy, string keyword, string statusFilter)
         {
+            TempData.Clear();
             // 因為畫面需要顯示大類、類別、品名和單位名稱，我們必須把它們全部 Include 進來！
             var query = _context.AssetInfos
                 .Include(a => a.AssetUnit)
@@ -46,7 +47,7 @@ namespace Web_EAMSystem.Controllers
                 query = query.Where(a => a.IsDisabled == true);
 
             var assetInfos = query.OrderBy(a => a.IsDisabled)
-                                  .ThenByDescending(a => a.CreatedDate)
+                                  .ThenBy(a =>a.ASSET_CODE)
                                   .ToList();
 
             ViewBag.CurrentSearchBy = searchBy;
@@ -62,6 +63,7 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult AssetCreate()
         {
+            TempData.Clear();
             // 準備大類下拉選單 (給 AJAX 連動當起點用)
             var mainCategories = _context.AssetCategories.Where(c => c.IsDisabled == false).ToList();
             ViewBag.MainCategoryList = new SelectList(mainCategories, "MAIN_CAT_ID", "MAIN_CAT_NAME");
@@ -77,11 +79,12 @@ namespace Web_EAMSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AssetCreate(AssetInfo assetInfo)
         {
+            TempData.Clear();
             var currentUser = GetCurrentUser();
 
             // 排除系統自動產生或無需驗證的欄位
             ModelState.Remove("ASSET_ID");
-            ModelState.Remove("ASSET_CODE"); // 💡 編碼是我們等一下要自己產生的！
+            ModelState.Remove("ASSET_CODE"); //  編碼是我們等一下要自己產生的！
             ModelState.Remove("CreatedDate");
             ModelState.Remove("CreatorId");
             ModelState.Remove("Creator");
@@ -93,7 +96,19 @@ namespace Web_EAMSystem.Controllers
             {
                 try
                 {
+                    bool isDuplicate = _context.AssetInfos.Any(c =>
+                        c.MODEL == assetInfo.MODEL &&
+                        c.BRAND == assetInfo.BRAND &&
+                        c.UNIT_ID == assetInfo.UNIT_ID);
                     // 核心邏輯：自動產生料號 (大類代碼-類別代碼-品名代碼-0001)
+                    if (isDuplicate)
+                    {
+                        // 如果發現重複，設定錯誤提示
+                        TempData["ErrorMessage"] = "添加失敗！資料庫中已存在相同的大類代號或大類名稱。";
+                        
+
+                        return View("AssetCreate", assetInfo);
+                    }
 
                     // 1. 抓出這筆品名的完整家族樹
                     var itemTree = _context.ItemNames
@@ -187,6 +202,155 @@ namespace Web_EAMSystem.Controllers
         // ==========================================
         // 編輯 (Edit), 停用 (Disable), 啟用 (Enable) 邏輯與 AssetCategory 完全相同，這裡先省略細節以保持程式碼簡潔。
         // 你可以直接將之前的寫法複製過來，把 AssetCategory 改成 AssetInfo 即可！
+        /// <summary>
+        /// 大類編輯
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult AssetEdit(Guid id)
+        {
+
+            var units = _context.AssetUnits.Where(u => u.IsDisabled == false).ToList();
+            ViewBag.UnitList = new SelectList(units, "ASSET_UNIT_ID", "ASSET_UNIT");
+            if (id == null) return NotFound();
+
+            //於資料庫查詢此筆資料
+            var assetInfo = _context.AssetInfos.Find(id);
+            if (assetInfo == null) return NotFound();
+
+            return View("AssetEdit", assetInfo);
+        }
+        [HttpPost]
+        public IActionResult AssetEdit(Guid id, AssetInfo assetInfo)
+        {
+            var units = _context.AssetUnits.Where(u => u.IsDisabled == false).ToList();
+            ViewBag.UnitList = new SelectList(units, "ASSET_UNIT_ID", "ASSET_UNIT");
+
+            var currentUser = GetCurrentUser();
+            // 排除不需要驗證的欄位 (因為這些是系統產生的或是舊資料)
+            ModelState.Remove("CreatedDate");
+            ModelState.Remove("CreatorId");
+            ModelState.Remove("Creator");
+            ModelState.Remove("ModifiedDate");
+            ModelState.Remove("ModifierId");
+            ModelState.Remove("Modifier");
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    //  檢查是否有「其他筆資料」用了同樣的代號或名稱 (要排除自己)
+                    bool isDuplicate = _context.AssetInfos.Any(c =>
+                        c.ASSET_ID != id &&
+                        (c.MODEL == assetInfo.MODEL && c.BRAND == assetInfo.BRAND && c.UNIT_ID == c.UNIT_ID));
+
+                    if (isDuplicate)
+                    {
+                        TempData["ErrorMessage"] = "修改失敗！資料庫中已存在相同的型號。";
+                        return View("AssetEdit", assetInfo);
+                    }
+
+                    //  標準更新流程：先從資料庫拿出舊包裹，再把新東西塞進去
+                    var existingAsset = _context.AssetInfos.Find(id);
+                    if (existingAsset != null)
+                    {
+                        existingAsset.MODEL = assetInfo.MODEL;
+                        existingAsset.BRAND = existingAsset.BRAND;
+                        existingAsset.UNIT_ID = assetInfo.UNIT_ID;
+                        existingAsset.ModifierId = currentUser.UserId; // 畫面上填寫的異動者，之後改為登入者
+                        existingAsset.Modifier = currentUser.UserName; // 畫面上填寫的異動者，之後改為登入者
+                        existingAsset.ModifiedDate = DateTime.Now;  // 系統押上最新修改時間
+
+                        _context.Update(existingAsset);
+                        _context.SaveChanges();
+
+                        TempData["SuccessMessage"] = "資料修改成功！";
+
+                        return RedirectToAction(nameof(AssetEdit)); // 修改完，自動跳回列表頁！
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "系統發生錯誤，修改失敗：" + ex.Message;
+                }
+            }
+            else
+            {
+                var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                TempData["ErrorMessage"] = "資料格式有誤：" + errors;
+            }
+            return View("AssetEdit", assetInfo);
+        }
+
+        /// <summary>
+        /// 停用大類
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult AssetDisable(Guid id)
+        {
+            // 1. 去資料庫把這筆資料找出來
+            var assetInfo = _context.AssetInfos.Find(id);
+
+            if (assetInfo == null) return NotFound();
+            var currentUser = GetCurrentUser();
+
+            try
+            {
+                // 2. 執行軟刪除：把停用標記設為 true
+                assetInfo.IsDisabled = true;
+                assetInfo.ModifierId = currentUser.UserId;
+                assetInfo.Modifier = currentUser.UserName;
+
+                // 💡 實務細節：停用也算是一種「異動」，所以我們要更新異動時間
+                assetInfo.ModifiedDate = DateTime.Now;
+                // (因為這裡沒有表單可以讓使用者輸入名字，異動者就維持上一次的人，或是你可以寫死成 "System")
+
+                // 3. 存檔
+                _context.Update(assetInfo);
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = $"大類 [{assetInfo.ASSET_CODE}] 已成功停用！";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "系統發生錯誤，停用失敗：" + ex.Message;
+            }
+
+            // 4. 完成後，跳回列表頁
+            return RedirectToAction(nameof(AssetIndex));
+        }
+
+        /// <summary>
+        /// 啟用大類
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult AssetEnable(Guid id)
+        {
+            var assetInfo = _context.AssetInfos.Find(id);
+            if (assetInfo == null) return NotFound();
+
+            try
+            {
+                assetInfo.IsDisabled = false; // 改為啟用
+                assetInfo.ModifiedDate = DateTime.Now;
+
+                _context.Update(assetInfo);
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = $"大類 [{assetInfo.ASSET_CODE}] 已成功恢復啟用！";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "系統發生錯誤，啟用失敗：" + ex.Message;
+            }
+
+            return RedirectToAction(nameof(AssetIndex));
+        }
 
         private (string UserId, string UserName) GetCurrentUser()
         {
