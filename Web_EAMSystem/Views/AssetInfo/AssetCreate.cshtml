@@ -14,21 +14,21 @@
 
             <div class="form-group mb-3">
                 <label class="control-label">資產大類 <span class="text-danger">*</span></label>
-                <select id="MainCategoryDropdown" class="form-select" asp-items="ViewBag.MainCategoryList" required>
+                <select id="MainCategoryDropdown" class="form-select select2-enable" asp-items="ViewBag.MainCategoryList" required>
                     <option value="">請選擇大類...</option>
                 </select>
             </div>
 
             <div class="form-group mb-3">
                 <label class="control-label">資產類別 <span class="text-danger">*</span></label>
-                <select id="SubCategoryDropdown" class="form-select" required>
+                <select id="SubCategoryDropdown" class="form-select select2-enable" required>
                     <option value="">請先選擇大類...</option>
                 </select>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="IN_ID" class="control-label">資產品名 <span class="text-danger">*</span></label>
-                <select id="ItemNameDropdown" asp-for="IN_ID" class="form-select" required>
+                <select id="ItemNameDropdown" asp-for="IN_ID" class="form-select select2-enable" required>
                     <option value="">請先選擇類別...</option>
                 </select>
                 <span asp-validation-for="IN_ID" class="text-danger"></span>
@@ -48,7 +48,7 @@
 
             <div class="form-group mb-3">
                 <label asp-for="UNIT_ID" class="control-label">標準單位 <span class="text-danger">*</span></label>
-                <select asp-for="UNIT_ID" class="form-select" asp-items="ViewBag.UnitList" required>
+                <select asp-for="UNIT_ID" class="form-select select2-enable" asp-items="ViewBag.UnitList" required>
                     <option value="">請選擇單位...</option>
                 </select>
                 <span asp-validation-for="UNIT_ID" class="text-danger"></span>
@@ -95,43 +95,58 @@
                     confirmButtonColor: '#d33'
                 });
             }
+            // ==========================================
+            // 🌟 以下為修復版的 AJAX 連動邏輯 (完美支援 Select2)
+            // ==========================================
 
-            // 🌟 以下為連動下拉選單的 AJAX 邏輯
-            document.getElementById('MainCategoryDropdown').addEventListener('change', function () {
-                var mainCatId = this.value;
-                var subDropdown = document.getElementById('SubCategoryDropdown');
-                var itemDropdown = document.getElementById('ItemNameDropdown');
+            // 1. 監聽大類改變
+            $('#MainCategoryDropdown').on('change', function () {
+                var mainCatId = $(this).val();
+                var $subDropdown = $('#SubCategoryDropdown');
+                var $itemDropdown = $('#ItemNameDropdown');
 
-                subDropdown.innerHTML = '<option value="">請選擇類別...</option>';
-                itemDropdown.innerHTML = '<option value="">請先選擇類別...</option>';
+                // 清空後方的選項，並加上 trigger('change') 叫 Select2 更新畫面
+                $subDropdown.empty().append('<option value="">請選擇類別...</option>').trigger('change');
+                $itemDropdown.empty().append('<option value="">請先選擇類別...</option>').trigger('change');
 
                 if (mainCatId) {
                     fetch(`/AssetInfo/GetSubCategories?mainCatId=${mainCatId}`)
                         .then(response => response.json())
                         .then(data => {
+                            // 🌟 排序魔法：依字首(筆畫/拼音)排序
+                            data.sort((a, b) => a.text.localeCompare(b.text, 'zh-Hant'));
+
                             data.forEach(item => {
-                                let option = new Option(item.text, item.value);
-                                subDropdown.add(option);
+                                $subDropdown.append(new Option(item.text, item.value));
                             });
+
+                            // 🌟 最關鍵的一步：資料塞完後，一定要叫 Select2 重新抓取選項並重繪！
+                            $subDropdown.trigger('change');
                         })
                         .catch(error => console.error('Error fetching sub categories:', error));
                 }
             });
 
-            document.getElementById('SubCategoryDropdown').addEventListener('change', function () {
-                var subCatId = this.value;
-                var itemDropdown = document.getElementById('ItemNameDropdown');
+            // 2. 監聽類別改變
+            $('#SubCategoryDropdown').on('change', function () {
+                var subCatId = $(this).val();
+                var $itemDropdown = $('#ItemNameDropdown');
 
-                itemDropdown.innerHTML = '<option value="">請選擇品名...</option>';
+                $itemDropdown.empty().append('<option value="">請選擇品名...</option>').trigger('change');
 
                 if (subCatId) {
                     fetch(`/AssetInfo/GetItemNames?subCatId=${subCatId}`)
                         .then(response => response.json())
                         .then(data => {
+                            // 🌟 排序魔法：依字首(筆畫/拼音)排序
+                            data.sort((a, b) => a.text.localeCompare(b.text, 'zh-Hant'));
+
                             data.forEach(item => {
-                                let option = new Option(item.text, item.value);
-                                itemDropdown.add(option);
+                                $itemDropdown.append(new Option(item.text, item.value));
                             });
+
+                            // 🌟 最關鍵的一步：資料塞完後，一定要叫 Select2 重新抓取選項並重繪！
+                            $itemDropdown.trigger('change');
                         })
                         .catch(error => console.error('Error fetching item names:', error));
                 }

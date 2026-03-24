@@ -12,7 +12,7 @@
         <form asp-action="ItemNameEdit">
             <input type="hidden" asp-for="IN_ID" />
 
-            <select asp-for="SUB_CAT_ID" asp-items="ViewBag.SubCategoryList" class="form-control">
+            <select asp-for="SUB_CAT_ID" asp-items="ViewBag.SubCategoryList" class="form-select select2-enable">
                 <option value="">請選擇大類...</option>
             </select>
 

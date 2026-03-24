@@ -69,8 +69,15 @@ namespace Web_EAMSystem.Controllers
             ViewBag.MainCategoryList = new SelectList(mainCategories, "MAIN_CAT_ID", "MAIN_CAT_NAME");
 
             // 準備單位下拉選單
-            var units = _context.AssetUnits.Where(u => u.IsDisabled == false).ToList();
-            ViewBag.UnitList = new SelectList(units, "ASSET_UNIT_ID", "ASSET_UNIT");
+            var units = _context.AssetUnits
+                .Where(u => u.IsDisabled == false)
+                .Select(c => new
+                {
+                    ASSET_UNIT_ID= c.ASSET_UNIT_ID,
+                    UnitDisplayText = c.ASSET_UNIT+"-"+c.ASSET_UNIT_CODE
+                })
+                .ToList();
+            ViewBag.UnitList = new SelectList(units, "ASSET_UNIT_ID", "UnitDisplayText");
 
             return View("AssetCreate");
         }

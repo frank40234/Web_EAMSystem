@@ -26,7 +26,7 @@
     <div class="col-md-6">
         <form asp-action="SubCategoryCreate" method="post">
 
-            <select asp-for="MAIN_CAT_ID" asp-items="ViewBag.CategoryList" class="form-control">
+            <select asp-for="MAIN_CAT_ID" asp-items="ViewBag.CategoryList" class="form-select select2-enable">
                 <option value="">請選擇大類...</option>
             </select>
 

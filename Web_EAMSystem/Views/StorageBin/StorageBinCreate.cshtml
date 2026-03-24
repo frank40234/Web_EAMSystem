@@ -14,7 +14,7 @@
 
             <div class="form-group mb-3">
                 <label asp-for="ROOM_ID" class="control-label">所屬資材室 <span class="text-danger">*</span></label>
-                <select asp-for="ROOM_ID" class="form-select" asp-items="ViewBag.RoomList" required>
+                <select asp-for="ROOM_ID" class="form-select select2-enable" asp-items="ViewBag.RoomList" required>
                     <option value="">請選擇資材室...</option>
                 </select>
                 <span asp-validation-for="ROOM_ID" class="text-danger"></span>
