@@ -21,5 +21,6 @@ namespace Web_EAMSystem.Data
         public DbSet<AssetInfo> AssetInfos { get; set; }
         public DbSet<StoreRoom> StoreRooms { get; set; }
         public DbSet<StorageBin> StorageBins { get; set; }
+        public DbSet<Inventory> Inventories { get; set; }
     }
 }

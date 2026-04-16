@@ -1,8 +1,135 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "公司資產管理首頁";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>資產管理系統</p>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-house-door"></i> 公司資產庫存清單</h2>
 </div>
+
+<!-- 篩選器 -->
+<div class="card mb-4 shadow-sm border-0 bg-light">
+    <div class="card-body">
+        <form id="filterForm" method="get" asp-action="Index" class="row g-3 align-items-end">
+            
+            <!-- 資產大類 -->
+            <div class="form-group mb-3 col-md-3">
+                <label class="control-label fw-bold">資產大類</label>
+                <select id="MainCategoryDropdown" name="mainFilter" class="form-select select2-enable" asp-items="ViewBag.MainCategoryList">
+                    <option value="">請選擇大類...</option>
+                </select>
+            </div>
+
+            <!-- 資產類別 -->
+            <div class="form-group mb-3 col-md-3">
+                <label class="control-label fw-bold">資產類別</label>
+                <select id="SubCategoryDropdown" name="subFilter" class="form-select select2-enable" asp-items="ViewBag.SubCategoryList">
+                    <option value="">請選擇類別...</option>
+                </select>
+            </div>
+
+            <!-- 資材室 -->
+            <div class="form-group mb-3 col-md-3">
+                <label class="control-label fw-bold">資材室</label>
+                <select id="roomFilter" name="roomFilter" class="form-select select2-enable" asp-items="ViewBag.StoreRoomList">
+                    <option value="">全部資材室</option>
+                </select>
+            </div>
+
+            <!-- 按鈕組 -->
+            <div class="form-group mb-3 col-md-3">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">執行篩選</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">清除條件</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<hr />
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover mt-3 align-middle border">
+        <thead class="table-dark">
+            <tr>
+                <th>資材編號</th>
+                <th>大類代號/名稱</th>
+                <th>類別代號/名稱</th>
+                <th>品名</th>
+                <th>型號/廠牌</th>
+                <th>庫存數量</th>
+                <th>單位</th>
+                <th>資材室</th>
+                <th>儲位</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td><strong>@item.asset.ASSET_CODE</strong></td>
+                        <td>
+                            <span class="badge bg-light text-dark border">@item.main.MAIN_CAT_CODE</span><br />
+                            <small>@item.main.MAIN_CAT_NAME</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">@item.sub.SUB_CAT_CODE</span><br />
+                            <small>@item.sub.SUB_CAT_NAME</small>
+                        </td>
+                        <td>@item.item.IN</td>
+                        <td>
+                            @item.asset.MODEL <br />
+                            <span class="badge bg-info text-dark" style="font-size: 0.7rem;">@item.asset.BRAND</span>
+                        </td>
+                        <td class="text-primary fw-bold fs-5">@item.inv.QTY.ToString("N0")</td>
+                        <td>@item.unit.ASSET_UNIT (@item.unit.ASSET_UNIT_CODE)</td>
+                        <td>@item.room.ROOM_NAME</td>
+                        <td><span class="badge bg-secondary">@item.bin.BIN_CODE</span></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-5">查無符合條件的庫存資料</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <script>
+        $(document).ready(function () {
+            // 大類連動邏輯 (恢復為標準 jQuery 事件)
+            $('#MainCategoryDropdown').change(function () {
+                var mainCode = $(this).val();
+                var subFilter = $('#SubCategoryDropdown');
+                
+                subFilter.empty();
+                subFilter.append($('<option></option>').val('').text('請選擇類別...'));
+
+                if (mainCode) {
+                    $.getJSON('@Url.Action("GetSubCategories", "Home")', { mainCode: mainCode }, function (data) {
+                        $.each(data, function (index, item) {
+                            subFilter.append($('<option></option>').val(item.value).text(item.text));
+                        });
+                    });
+                }
+            });
+
+            // SweetAlert
+            var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
+            var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+            if (successMsg) Swal.fire({ icon: 'success', title: '成功！', text: successMsg });
+            if (errorMsg) Swal.fire({ icon: 'error', title: '錯誤！', text: errorMsg });
+        });
+    </script>
+}

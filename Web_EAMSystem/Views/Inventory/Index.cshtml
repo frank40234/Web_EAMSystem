@@ -1,0 +1,111 @@
+@model IEnumerable<Web_EAMSystem.Models.InventoryIndexViewModel>
+
+@{
+    ViewData["Title"] = "庫存清單查詢";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-box-seam"></i> 庫存清單查詢</h2>
+</div>
+
+<!-- 篩選器區塊 -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">大類</label>
+                <select name="mainFilter" class="form-select" asp-items="ViewBag.MainCategories">
+                    <option value="">-- 全部大類 --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">小類</label>
+                <select name="subFilter" class="form-select" asp-items="ViewBag.SubCategories">
+                    <option value="">-- 全部小類 --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">資材室</label>
+                <select name="roomFilter" class="form-select" asp-items="ViewBag.StoreRooms">
+                    <option value="">-- 全部資材室 --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">🔍 執行篩選</button>
+                <a asp-action="Index" class="btn btn-outline-secondary ms-1">清除條件</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<hr />
+
+<!-- 資料表格區塊 -->
+<div class="table-responsive">
+    <table class="table table-striped table-hover mt-3 align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>資材編號</th>
+                <th>大類代號/名稱</th>
+                <th>類別代號/名稱</th>
+                <th>品名</th>
+                <th>型號/廠牌</th>
+                <th>庫存數量</th>
+                <th>單位(代號)</th>
+                <th>資材室</th>
+                <th>儲位</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td><strong>@item.ASSET_CODE</strong></td>
+                        <td>
+                            <span class="badge bg-light text-dark border">@item.MAIN_CAT_CODE</span><br />
+                            <small>@item.MAIN_CAT_NAME</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">@item.SUB_CAT_CODE</span><br />
+                            <small>@item.SUB_CAT_NAME</small>
+                        </td>
+                        <td>@item.IN</td>
+                        <td>
+                            @item.MODEL<br />
+                            <span class="badge bg-info text-dark" style="font-size: 0.75rem;">@item.BRAND</span>
+                        </td>
+                        <td class="text-primary fw-bold fs-5">@item.QTY.ToString("N0")</td>
+                        <td>@item.ASSET_UNIT (@item.ASSET_UNIT_CODE)</td>
+                        <td>@item.ROOM_NAME</td>
+                        <td><span class="badge bg-secondary">@item.BIN_CODE</span></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">查無符合條件的庫存資料</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
+            var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+
+            if (successMsg) {
+                Swal.fire({ icon: 'success', title: '成功！', text: successMsg, confirmButtonColor: '#3085d6' });
+            }
+            if (errorMsg) {
+                Swal.fire({ icon: 'error', title: '發生錯誤！', text: errorMsg, confirmButtonColor: '#d33' });
+            }
+        });
+    </script>
+}
