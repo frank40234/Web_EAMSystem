@@ -29,6 +29,8 @@ namespace Web_EAMSystem.Controllers
                 .Include(a => a.ItemName)
                     .ThenInclude(i => i.SubAssetCategory)
                         .ThenInclude(s => s.AssetCategory)
+                .Include(b=>b.StorageBin)
+                    .ThenInclude(r=>r.StoreRoom)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))
@@ -39,6 +41,8 @@ namespace Web_EAMSystem.Controllers
                     query = query.Where(a => a.MODEL.Contains(keyword));
                 else if (searchBy == "BRAND")
                     query = query.Where(a => a.BRAND.Contains(keyword));
+                else if (searchBy == "ROOM_NAME")
+                    query = query.Where(a => a.StorageBin.StoreRoom.ROOM_NAME.Contains(keyword));
             }
 
             if (statusFilter == "Active")
@@ -77,6 +81,7 @@ namespace Web_EAMSystem.Controllers
                     UnitDisplayText = c.ASSET_UNIT+"-"+c.ASSET_UNIT_CODE
                 })
                 .ToList();
+            ViewBag.RoomList = new SelectList(_context.StoreRooms.Where(r => r.IsDisabled == false), "ROOM_ID", "ROOM_NAME");
             ViewBag.UnitList = new SelectList(units, "ASSET_UNIT_ID", "UnitDisplayText");
 
             return View("AssetCreate");
@@ -177,6 +182,7 @@ namespace Web_EAMSystem.Controllers
 
             // 若失敗，重新準備下拉選單
             ViewBag.MainCategoryList = new SelectList(_context.AssetCategories.Where(c => c.IsDisabled == false), "MAIN_CAT_ID", "MAIN_CAT_NAME");
+            ViewBag.RoomList = new SelectList(_context.StoreRooms.Where(r=>r.IsDisabled==false), "ROOM_ID", "ROOM_NAME");
             ViewBag.UnitList = new SelectList(_context.AssetUnits.Where(u => u.IsDisabled == false), "ASSET_UNIT_ID", "ASSET_UNIT");
             return View(assetInfo);
         }
@@ -204,6 +210,16 @@ namespace Web_EAMSystem.Controllers
             return Json(data);
         }
 
+        [HttpGet]
+        public IActionResult GetStorageBins(Guid roomId)
+        {
+            var data = _context.StorageBins
+                .Where(i=>i.ROOM_ID == roomId&& i.IsDisabled==false)
+                .Select(i => new { value = i.BIN_ID, text = i.BIN_CODE })
+                .ToList();
+            return Json(data);
+        }
+
         // ==========================================
         // 4. 共用方法 (停用、啟用、取得使用者)
         // ==========================================
@@ -217,15 +233,36 @@ namespace Web_EAMSystem.Controllers
         [HttpGet]
         public IActionResult AssetEdit(Guid id)
         {
-
+            
             var units = _context.AssetUnits.Where(u => u.IsDisabled == false).ToList();
             ViewBag.UnitList = new SelectList(units, "ASSET_UNIT_ID", "ASSET_UNIT");
-            if (id == null) return NotFound();
+            if (id == Guid.Empty) return NotFound();
+
+            ViewBag.RoomList = new SelectList(_context.StoreRooms.Where(r => r.IsDisabled == false), "ROOM_ID", "ROOM_NAME");
 
             //於資料庫查詢此筆資料
             var assetInfo = _context.AssetInfos.Find(id);
             if (assetInfo == null) return NotFound();
 
+            Guid? currentRoomId = null;
+            if (assetInfo.BIN_ID.HasValue)
+            {
+                // 反向查出這個儲位是屬於哪一個資材室
+                var currentBin = _context.StorageBins.Find(assetInfo.BIN_ID);
+                if (currentBin != null)
+                {
+                    currentRoomId = currentBin.ROOM_ID; // 找到了！記下原本的資材室
+
+                    // 【非常重要】先把原本的「儲位清單」撈出來送給畫面！
+                    // 這樣畫面才有選項可以讓 asp-for="BIN_ID" 去自動選中
+                    var bins = _context.StorageBins
+                        .Where(b => b.ROOM_ID == currentRoomId && b.IsDisabled == false)
+                        .ToList();
+                    ViewBag.BinList = new SelectList(bins, "BIN_ID", "BIN_CODE");
+                }
+            }
+            var rooms = _context.StoreRooms.Where(r => r.IsDisabled == false).ToList();
+            ViewBag.RoomList = new SelectList(rooms, "ROOM_ID", "ROOM_NAME", currentRoomId);
             return View("AssetEdit", assetInfo);
         }
         [HttpPost]
@@ -233,7 +270,7 @@ namespace Web_EAMSystem.Controllers
         {
             var units = _context.AssetUnits.Where(u => u.IsDisabled == false).ToList();
             ViewBag.UnitList = new SelectList(units, "ASSET_UNIT_ID", "ASSET_UNIT");
-
+            ViewBag.RoomList = new SelectList(_context.StoreRooms.Where(r => r.IsDisabled == false), "ROOM_ID", "ROOM_NAME");
             var currentUser = GetCurrentUser();
             // 排除不需要驗證的欄位 (因為這些是系統產生的或是舊資料)
             ModelState.Remove("CreatedDate");
@@ -263,6 +300,7 @@ namespace Web_EAMSystem.Controllers
                     if (existingAsset != null)
                     {
                         existingAsset.MODEL = assetInfo.MODEL;
+                        existingAsset.BIN_ID = assetInfo.BIN_ID;
                         existingAsset.BRAND = existingAsset.BRAND;
                         existingAsset.UNIT_ID = assetInfo.UNIT_ID;
                         existingAsset.ModifierId = currentUser.UserId; // 畫面上填寫的異動者，之後改為登入者

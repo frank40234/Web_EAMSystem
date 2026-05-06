@@ -53,6 +53,21 @@
                 </select>
                 <span asp-validation-for="UNIT_ID" class="text-danger"></span>
             </div>
+            <div class="form-group mb-3">
+                <label class="control-lable">資材室</label>
+                <select id="RoomDropdown" class="form-select select2-enable" asp-items = "ViewBag.RoomList">
+                    <option value="請選擇資材室"></option>
+                </select>
+                <span asp-validation-for="BIN_ID" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="BIN_ID" class="control-label">儲位</label>
+                <!-- 這裡是綁定到 BIN_ID 的欄位 -->
+                <select id="BinDropdown" asp-for="BIN_ID" class="form-select select2-enable">
+                    <option value="">請先選擇資材室...</option>
+                </select>
+                <span asp-validation-for="BIN_ID" class="text-danger"></span>
+            </div>
 
             <div class="form-group mt-4">
                 <input type="submit" value="確認新增" class="btn btn-primary" />
@@ -151,6 +166,25 @@
                         .catch(error => console.error('Error fetching item names:', error));
                 }
             });
+        });
+                // 監聽資材室改變
+        $('#RoomDropdown').on('change', function () {
+            var roomId = $(this).val();
+            var $binDropdown = $('#BinDropdown');
+            // 清空儲位選項
+            $binDropdown.empty().append('<option value="">請選擇儲位...</option>').trigger('change');
+            if (roomId) {
+                fetch(`/AssetInfo/GetStorageBins?roomId=${roomId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(item => {
+                            $binDropdown.append(new Option(item.text, item.value));
+                        });
+                        // 叫 Select2 重新抓取選項並重繪
+                        $binDropdown.trigger('change');
+                    })
+                    .catch(error => console.error('Error fetching storage bins:', error));
+            }
         });
     </script>
 }

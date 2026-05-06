@@ -16,6 +16,8 @@
                 <option value="ASSET_CODE" selected="@(ViewBag.CurrentSearchBy == "ASSET_CODE")">物料編碼</option>
                 <option value="MODEL" selected="@(ViewBag.CurrentSearchBy == "MODEL")">型號</option>
                 <option value="BRAND" selected="@(ViewBag.CurrentSearchBy == "BRAND")">廠牌</option>
+                <option value="ROOM_NAME" selected="@(ViewBag.CurrentSearchBy == "ROOM_NAME")">資材室</option>
+
             </select>
         </div>
         
@@ -52,6 +54,8 @@
             <th>型號</th>
             <th>廠牌</th>
             <th>單位</th>
+            <th>資材室</th>
+            <th>儲位</th>
             <th>狀態</th>
             <th>操作選項</th>
         </tr>
@@ -71,7 +75,10 @@
                 
                 <td>@item.MODEL</td>
                 <td>@item.BRAND</td>
+
                 <td>@item.AssetUnit?.ASSET_UNIT</td>
+                <td>@item.StorageBin?.StoreRoom?.ROOM_NAME</td>
+                <td>@item.StorageBin?.BIN_CODE</td>
 
                 <td>
                     @if (item.IsDisabled)

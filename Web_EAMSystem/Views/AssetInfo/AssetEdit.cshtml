@@ -24,10 +24,29 @@
                 <input asp-for="BRAND" class="form-control" />
                 <span asp-validation-for="BRAND" class="text-danger"></span>
             </div>
+            <div class="form-group mb-3">
+                <label class="control-label">單位</label>
+                <select asp-for="UNIT_ID" asp-items="ViewBag.UnitList" class="form-select select2-enable">
+                    <option value="">請選擇單位...</option>
+                </select>
+            </div>
+                <div class="form-group mb-3">
+                    <label class="control-label">資材室</label>
+                    <!-- 🌟 接收 ViewBag.RoomList，因為我們剛在 Controller 指定了預設值，它會自動選中舊的資材室 -->
+                    <select id="RoomDropdown" class="form-select select2-enable" asp-items="ViewBag.RoomList">
+                        <option value="">請選擇資材室 (選填)...</option>
+                    </select>
+                </div>
 
-            <select asp-for="UNIT_ID" asp-items="ViewBag.UnitList" class="form-select select2-enable">
-                <option value="">請選擇大類...</option>
-            </select>
+                <div class="form-group mb-3">
+                    <label asp-for="BIN_ID" class="control-label">儲位</label>
+                    <!-- 🌟 接收 ViewBag.BinList，這時畫面有了舊的選項，asp-for="BIN_ID" 就會自動選中舊的儲位了！ -->
+                    <select id="BinDropdown" asp-for="BIN_ID" class="form-select select2-enable" asp-items="ViewBag.BinList">
+                        <option value="">請先選擇資材室...</option>
+                    </select>
+                    <span asp-validation-for="BIN_ID" class="text-danger"></span>
+                </div>
+
             <div class="form-group mt-3">
                 <input type="submit" value="儲存修改" class="btn btn-primary" onclick="return confirm('確定要儲存這筆修改嗎？');" />
                 <a asp-action="AssetIndex" class="btn btn-secondary">返回列表</a>
@@ -48,6 +67,26 @@
             }
             if (errorMsg) {
                 Swal.fire({ icon: 'error', title: '編輯失敗！', text: errorMsg, confirmButtonColor: '#d33' });
+            }
+        });
+
+                        // 監聽資材室改變
+        $('#RoomDropdown').on('change', function () {
+            var roomId = $(this).val();
+            var $binDropdown = $('#BinDropdown');
+            // 清空儲位選項
+            $binDropdown.empty().append('<option value="">請選擇儲位...</option>').trigger('change');
+            if (roomId) {
+                fetch(`/AssetInfo/GetStorageBins?roomId=${roomId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(item => {
+                            $binDropdown.append(new Option(item.text, item.value));
+                        });
+                        // 叫 Select2 重新抓取選項並重繪
+                        $binDropdown.trigger('change');
+                    })
+                    .catch(error => console.error('Error fetching storage bins:', error));
             }
         });
     </script>

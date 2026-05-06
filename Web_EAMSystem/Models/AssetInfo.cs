@@ -35,6 +35,11 @@ namespace Web_EAMSystem.Models
         [ForeignKey("UNIT_ID")]
         public AssetUnit? AssetUnit { get; set; }
 
+        public Guid? BIN_ID {  get; set; }
+
+        [ForeignKey("BIN_ID")]
+        public StorageBin? StorageBin { get; set; }
+
         // --- 以下為系統共用的稽核與狀態欄位 ---
 
         [MaxLength(10)]
