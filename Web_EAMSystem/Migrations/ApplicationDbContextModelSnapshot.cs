@@ -17,7 +17,7 @@ namespace Web_EAMSystem.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.25")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -69,7 +69,7 @@ namespace Web_EAMSystem.Migrations
 
                     b.HasKey("MAIN_CAT_ID");
 
-                    b.ToTable("AssetCategories");
+                    b.ToTable("AssetCategories", (string)null);
                 });
 
             modelBuilder.Entity("Web_EAMSystem.Models.AssetInfo", b =>
@@ -100,8 +100,7 @@ namespace Web_EAMSystem.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<Guid?>("IN_ID")
-                        .IsRequired()
+                    b.Property<Guid>("IN_ID")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsDisabled")
@@ -122,8 +121,7 @@ namespace Web_EAMSystem.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<Guid?>("UNIT_ID")
-                        .IsRequired()
+                    b.Property<Guid>("UNIT_ID")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("ASSET_ID");
@@ -134,7 +132,7 @@ namespace Web_EAMSystem.Migrations
 
                     b.HasIndex("UNIT_ID");
 
-                    b.ToTable("AssetInfos");
+                    b.ToTable("AssetInfos", (string)null);
                 });
 
             modelBuilder.Entity("Web_EAMSystem.Models.AssetUnit", b =>
@@ -184,7 +182,7 @@ namespace Web_EAMSystem.Migrations
 
                     b.HasKey("ASSET_UNIT_ID");
 
-                    b.ToTable("AssetUnits");
+                    b.ToTable("AssetUnits", (string)null);
                 });
 
             modelBuilder.Entity("Web_EAMSystem.Models.Inventory", b =>
@@ -207,7 +205,7 @@ namespace Web_EAMSystem.Migrations
 
                     b.HasKey("INVENTORY_ID");
 
-                    b.ToTable("Inventories");
+                    b.ToTable("Inventories", (string)null);
                 });
 
             modelBuilder.Entity("Web_EAMSystem.Models.ItemName", b =>
@@ -262,7 +260,7 @@ namespace Web_EAMSystem.Migrations
 
                     b.HasIndex("SUB_CAT_ID");
 
-                    b.ToTable("ItemNames");
+                    b.ToTable("ItemNames", (string)null);
                 });
 
             modelBuilder.Entity("Web_EAMSystem.Models.StorageBin", b =>
@@ -308,7 +306,7 @@ namespace Web_EAMSystem.Migrations
 
                     b.HasIndex("ROOM_ID");
 
-                    b.ToTable("StorageBins");
+                    b.ToTable("StorageBins", (string)null);
                 });
 
             modelBuilder.Entity("Web_EAMSystem.Models.StoreRoom", b =>
@@ -353,7 +351,7 @@ namespace Web_EAMSystem.Migrations
 
                     b.HasKey("ROOM_ID");
 
-                    b.ToTable("StoreRooms");
+                    b.ToTable("StoreRooms", (string)null);
                 });
 
             modelBuilder.Entity("Web_EAMSystem.Models.SubAssetCategory", b =>
@@ -408,7 +406,7 @@ namespace Web_EAMSystem.Migrations
 
                     b.HasIndex("MAIN_CAT_ID");
 
-                    b.ToTable("SubAssetCategories");
+                    b.ToTable("SubAssetCategories", (string)null);
                 });
 
             modelBuilder.Entity("Web_EAMSystem.Models.AssetInfo", b =>

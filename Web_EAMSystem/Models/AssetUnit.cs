@@ -39,5 +39,6 @@ namespace Web_EAMSystem.Models
 
         // 8. 狀態(是否停用) - True代表停用，False代表啟用
         public bool IsDisabled { get; set; }
+
     }
 }
