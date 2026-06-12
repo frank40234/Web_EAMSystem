@@ -1,19 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Web_EAMSystem.Models;
 
 namespace Web_EAMSystem.Data
 {
-    // 繼承自 EF Core 的 DbContext
+    /// <summary>
+    /// 系統資料庫上下文，管理與配置資料表對應，並自動攔截處理實體的稽核時間欄位
+    /// </summary>
     public class ApplicationDbContext : DbContext
     {
-        // 建構子：接收外部傳進來的資料庫連線設定
+        /// <summary>
+        /// 初始化資料庫上下文
+        /// </summary>
+        /// <param name="options">資料庫連線與配置參數</param>
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
-        // 宣告 DbSet：這代表我們要在資料庫裡建立一個名為 AssetCategories 的資料表
-        // 裡面的欄位就是依照我們剛才寫的 AssetCategory 藍圖來產生
         public DbSet<AssetCategory> AssetCategories { get; set; }
         public DbSet<SubAssetCategory> SubAssetCategories { get; set; }
         public DbSet<AssetUnit> AssetUnits { get; set; }
@@ -22,5 +29,48 @@ namespace Web_EAMSystem.Data
         public DbSet<StoreRoom> StoreRooms { get; set; }
         public DbSet<StorageBin> StorageBins { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
+
+        /// <summary>
+        /// 覆寫 EF Core 的同步存檔，於寫入資料庫前自動填入實體稽核時間
+        /// </summary>
+        /// <returns>受影響的資料筆數</returns>
+        public override int SaveChanges()
+        {
+            ApplyAuditInfo();
+            return base.SaveChanges();
+        }
+
+        /// <summary>
+        /// 覆寫 EF Core 的非同步存檔，於寫入資料庫前自動填入實體稽核時間
+        /// </summary>
+        /// <param name="cancellationToken">取消語彙</param>
+        /// <returns>受影響的資料筆數任務</returns>
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            ApplyAuditInfo();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// 自動追蹤 ChangeTracker 中的變更，填入 CreatedDate 與 ModifiedDate
+        /// </summary>
+        private void ApplyAuditInfo()
+        {
+            var entries = ChangeTracker.Entries()
+                .Where(e => e.Entity is BaseEntity && (e.State == EntityState.Added || e.State == EntityState.Modified));
+
+            var currentTime = DateTime.Now;
+
+            foreach (var entry in entries)
+            {
+                var entity = (BaseEntity)entry.Entity;
+                entity.ModifiedDate = currentTime;
+
+                if (entry.State == EntityState.Added)
+                {
+                    entity.CreatedDate = currentTime;
+                }
+            }
+        }
     }
 }

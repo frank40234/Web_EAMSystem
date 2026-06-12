@@ -1,51 +1,44 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Web_EAMSystem.Models
 {
-    public class ItemName
+    /// <summary>
+    /// 資產品名實體，隸屬於資產次類，代表具體的產品類別（如 筆記型電腦、伺服器等）
+    /// </summary>
+    public class ItemName : BaseEntity
     {
-        //GUID 
+        /// <summary>
+        /// 品名唯一識別碼
+        /// </summary>
         [Key]
         public Guid IN_ID { get; set; }
+
+        /// <summary>
+        /// 所屬的次類唯一識別碼
+        /// </summary>
+        [Required(ErrorMessage = "請選擇所屬次類")]
         public Guid? SUB_CAT_ID { get; set; }
 
-        // 2. 導覽屬性對應新的外鍵名稱
+        /// <summary>
+        /// 所屬的次類導覽屬性
+        /// </summary>
         [ForeignKey("SUB_CAT_ID")]
-        public SubAssetCategory? SubAssetCategory { get; set; }
+        public virtual SubAssetCategory? SubAssetCategory { get; set; }
 
-        //品名
+        /// <summary>
+        /// 品名名稱，例如：筆記型電腦
+        /// </summary>
         [Required(ErrorMessage = "請輸入品名")]
-        [MaxLength(20)]
-        public string IN { get; set; }
+        [MaxLength(20, ErrorMessage = "品名長度不能超過 20 個字元")]
+        public string IN_NAME { get; set; } = string.Empty;
 
-        //品名代號
+        /// <summary>
+        /// 品名代號（通常為3碼），例如：MAC
+        /// </summary>
         [Required(ErrorMessage = "請輸入品名代號")]
-        [MaxLength(3)]
-        public string IN_CODE { get; set; }
-
-        //建檔者
-        [Required(ErrorMessage = "請輸入姓名")]
-        [MaxLength(10)]
-        public string Creator { get; set; }
-        //建檔者工號
-        [MaxLength(10)]
-        public string CreatorId { get; set; }
-
-        //建檔日期
-        public DateTime CreatedDate { get; set; }
-
-        //修改者
-        [MaxLength(10)]
-        public string Modifier { get; set; }
-        //修改者ID
-        [MaxLength(10)]
-        public string ModifierId { get; set; }
-
-        // 7. 異動日期 (使用 DateTime? 允許空值 Nullable)
-        public DateTime ModifiedDate { get; set; }
-
-        // 8. 狀態(是否停用) - True代表停用，False代表啟用
-        public bool IsDisabled { get; set; }
+        [MaxLength(3, ErrorMessage = "品名代號長度不能超過 3 個字元")]
+        public string IN_CODE { get; set; } = string.Empty;
     }
 }

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Web_EAMSystem.Models.ItemName>
+@model IEnumerable<Web_EAMSystem.Models.ItemName>
 
 @{
     ViewData["Title"] = "品名資料清單";
@@ -15,7 +15,7 @@
         <div class="col-auto">
             <select name="searchBy" class="form-select">
                 <option value="IN_CODE" selected="@(ViewBag.CurrentSearchBy == "IN_CODE")">品名代號</option>
-                <option value="IN" selected="@(ViewBag.CurrentSearchBy == "IN")">品名</option>
+                <option value="IN_NAME" selected="@(ViewBag.CurrentSearchBy == "IN_NAME" || ViewBag.CurrentSearchBy == "IN")">品名</option>
                 <option value="SUB_CAT_CODE" selected="@(ViewBag.CurrentSearchBy == "SUB_CAT_CODE")">類別代號</option>
                 <option value="Creator" selected="@(ViewBag.CurrentSearchBy == "Creator")">建檔者</option>
             </select>
@@ -62,7 +62,7 @@
                 <td>@item.SubAssetCategory?.SUB_CAT_CODE</td>
                 <td>@item.SubAssetCategory?.SUB_CAT_NAME</td>
                 <td>@item.IN_CODE</td>
-                <td>@item.IN</td>
+                <td>@item.IN_NAME</td>
                 <td>@item.Creator</td>
                 <td>@item.CreatedDate.ToString("yyyy-MM-dd")</td>
                 <td>@item.ModifiedDate.ToString("yyyy-MM-dd")</td>
@@ -104,14 +104,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // 等待 HTML 畫面完全載入後執行
         document.addEventListener("DOMContentLoaded", function () {
-
-            // 從後端接收成功或錯誤訊息 (Razor 語法轉成 JavaScript 字串)
             var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
             var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
 
-            // 如果有成功訊息，彈出綠色打勾視窗
             if (successMsg) {
                 Swal.fire({
                     icon: 'success',
@@ -121,7 +117,6 @@
                 });
             }
 
-            // 如果有錯誤訊息，彈出紅色叉叉視窗
             if (errorMsg) {
                 Swal.fire({
                     icon: 'error',
@@ -133,4 +128,3 @@
         });
     </script>
 }
-

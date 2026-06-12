@@ -1,28 +1,24 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Web_EAMSystem.Models
 {
-    public class StoreRoom
+    /// <summary>
+    /// 資材室區域實體，例如 A區、B區 等
+    /// </summary>
+    public class StoreRoom : BaseEntity
     {
+        /// <summary>
+        /// 資材室唯一識別碼
+        /// </summary>
         [Key]
         public Guid ROOM_ID { get; set; }
 
-        // 資材室代號或名稱 (例如: "A", "B")
+        /// <summary>
+        /// 資材室名稱，例如：A區
+        /// </summary>
         [Required(ErrorMessage = "請輸入資材室")]
-        [MaxLength(5)]
-        public string ROOM_NAME { get; set; }
-
-        // --- 以下為系統共用欄位 ---
-        [MaxLength(10)]
-        public string Creator { get; set; }
-        [MaxLength(10)]
-        public string CreatorId { get; set; }
-        public DateTime CreatedDate { get; set; }
-        [MaxLength(10)]
-        public string Modifier { get; set; }
-        [MaxLength(10)]
-        public string ModifierId { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public bool IsDisabled { get; set; }
+        [MaxLength(5, ErrorMessage = "資材室名稱長度不能超過 5 個字元")]
+        public string ROOM_NAME { get; set; } = string.Empty;
     }
 }

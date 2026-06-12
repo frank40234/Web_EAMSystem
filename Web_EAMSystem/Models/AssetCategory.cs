@@ -1,47 +1,31 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Web_EAMSystem.Models
 {
-    public class AssetCategory
+    /// <summary>
+    /// 資產大類實體，定義資產最高層級類別（如 IT設備、辦公設備等）
+    /// </summary>
+    public class AssetCategory : BaseEntity
     {
-        //GUID 
+        /// <summary>
+        /// 大類唯一識別碼
+        /// </summary>
         [Key]
         public Guid MAIN_CAT_ID { get; set; }
 
-        //大類名稱
-        [Required(ErrorMessage ="請輸入大類名稱")]
-        [MaxLength(20)]
-        public string MAIN_CAT_NAME { get; set; }
+        /// <summary>
+        /// 大類名稱，例如：IT設備
+        /// </summary>
+        [Required(ErrorMessage = "請輸入大類名稱")]
+        [MaxLength(20, ErrorMessage = "大類名稱長度不能超過 20 個字元")]
+        public string MAIN_CAT_NAME { get; set; } = string.Empty;
 
-        //大類代號
+        /// <summary>
+        /// 大類代號（通常為2碼），例如：IT
+        /// </summary>
         [Required(ErrorMessage = "請輸入大類代號")]
-        [MaxLength(2)]
-        public string MAIN_CAT_CODE { get; set; }
-
-        //建檔者
-        [MaxLength(10)]
-        public string Creator { get; set; }
-        //建檔者工號
-        [MaxLength(10)]
-        public string CreatorId { get; set; }
-
-        //建檔日期
-        public DateTime CreatedDate { get; set; }
-
-        //修改者
-        [MaxLength(10)]
-        public string Modifier { get; set; }
-        //修改者ID
-        [MaxLength(10)]
-        public string ModifierId { get; set; }
-
-        // 7. 異動日期 (使用 DateTime? 允許空值 Nullable)
-        public DateTime ModifiedDate { get; set; }
-
-        // 8. 狀態(是否停用) - True代表停用，False代表啟用
-        public bool IsDisabled { get; set; }
-
+        [MaxLength(2, ErrorMessage = "大類代號長度不能超過 2 個字元")]
+        public string MAIN_CAT_CODE { get; set; } = string.Empty;
     }
 }

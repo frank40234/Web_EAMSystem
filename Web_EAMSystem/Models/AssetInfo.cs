@@ -1,64 +1,71 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Web_EAMSystem.Models
 {
-    public class AssetInfo
+    /// <summary>
+    /// 資產資訊實體，定義具體資產的料號、廠牌、型號、預設單位與存放儲位
+    /// </summary>
+    public class AssetInfo : BaseEntity
     {
-        // 1. GUID (主鍵)
+        /// <summary>
+        /// 資產唯一識別碼
+        /// </summary>
         [Key]
         public Guid ASSET_ID { get; set; }
 
-        // 2. 物料編碼 (自動產生，如：COMP-NB-MAC-0001)
-        [MaxLength(30)]
-        public string? ASSET_CODE { get; set; } // 允許空值，因為存檔前由系統自動填入
+        /// <summary>
+        /// 系統自動生成的資材編碼，如：COMP-NB-MAC-0001
+        /// </summary>
+        [MaxLength(30, ErrorMessage = "資材編碼長度不能超過 30 個字元")]
+        public string? ASSET_CODE { get; set; }
 
-        // 3. 品名關聯 (透過品名，就能抓到類別與大類)
+        /// <summary>
+        /// 關聯的品名唯一識別碼
+        /// </summary>
         [Required(ErrorMessage = "請選擇品名")]
         public Guid? IN_ID { get; set; }
 
+        /// <summary>
+        /// 關聯的品名導覽屬性
+        /// </summary>
         [ForeignKey("IN_ID")]
-        public ItemName? ItemName { get; set; }
+        public virtual ItemName? ItemName { get; set; }
 
-        // 4. 型號
-        [MaxLength(50)]
+        /// <summary>
+        /// 規格型號，例如：MacBook Pro 16
+        /// </summary>
+        [MaxLength(50, ErrorMessage = "型號長度不能超過 50 個字元")]
         public string? MODEL { get; set; }
 
-        // 5. 廠牌
-        [MaxLength(50)]
+        /// <summary>
+        /// 品牌，例如：Apple
+        /// </summary>
+        [MaxLength(50, ErrorMessage = "廠牌長度不能超過 50 個字元")]
         public string? BRAND { get; set; }
 
-        // 6. 標準單位 (關聯到 AssetUnit)
+        /// <summary>
+        /// 關聯的計量單位唯一識別碼
+        /// </summary>
         [Required(ErrorMessage = "請選擇標準單位")]
         public Guid? UNIT_ID { get; set; }
 
+        /// <summary>
+        /// 關聯的計量單位導覽屬性
+        /// </summary>
         [ForeignKey("UNIT_ID")]
-        public AssetUnit? AssetUnit { get; set; }
+        public virtual AssetUnit? AssetUnit { get; set; }
 
-        public Guid? BIN_ID {  get; set; }
+        /// <summary>
+        /// 預設存放儲位唯一識別碼
+        /// </summary>
+        public Guid? BIN_ID { get; set; }
 
+        /// <summary>
+        /// 預設存放儲位導覽屬性
+        /// </summary>
         [ForeignKey("BIN_ID")]
-        public StorageBin? StorageBin { get; set; }
-
-        // --- 以下為系統共用的稽核與狀態欄位 ---
-
-        [MaxLength(10)]
-        public string? Creator { get; set; }
-
-        [MaxLength(10)]
-        public string? CreatorId { get; set; }
-
-        public DateTime CreatedDate { get; set; }
-
-        [MaxLength(10)]
-        public string? Modifier { get; set; }
-
-        [MaxLength(10)]
-        public string? ModifierId { get; set; }
-
-        public DateTime ModifiedDate { get; set; }
-
-        // 7. 狀態(是否停用)
-        public bool IsDisabled { get; set; }
+        public virtual StorageBin? StorageBin { get; set; }
     }
 }
