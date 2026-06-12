@@ -30,6 +30,7 @@ namespace Web_EAMSystem.Models
         /// <summary>
         /// 品名名稱，例如：筆記型電腦
         /// </summary>
+        [Column("IN")]
         [Required(ErrorMessage = "請輸入品名")]
         [MaxLength(20, ErrorMessage = "品名長度不能超過 20 個字元")]
         public string IN_NAME { get; set; } = string.Empty;
