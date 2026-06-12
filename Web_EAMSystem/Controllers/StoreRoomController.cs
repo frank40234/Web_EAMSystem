@@ -131,81 +131,81 @@ namespace Web_EAMSystem.Controllers
             return View(storeRoom);
         }
 
-        /// <summary>
-        /// 載入資材室編輯頁面
-        /// </summary>
-        /// <param name="id">資材室識別碼</param>
-        /// <returns>編輯檢視</returns>
-        [HttpGet]
-        public IActionResult StoreRoomEdit(Guid id)
-        {
-            if (id == Guid.Empty) return NotFound(); // 修正無效 null 檢查
+        ///// <summary>
+        ///// 載入資材室編輯頁面
+        ///// </summary>
+        ///// <param name="id">資材室識別碼</param>
+        ///// <returns>編輯檢視</returns>
+        //[HttpGet]
+        //public IActionResult StoreRoomEdit(Guid id)
+        //{
+        //    if (id == Guid.Empty) return NotFound(); // 修正無效 null 檢查
 
-            var storeRoom = _context.StoreRooms.Find(id);
-            if (storeRoom == null) return NotFound();
+        //    var storeRoom = _context.StoreRooms.Find(id);
+        //    if (storeRoom == null) return NotFound();
 
-            return View("StoreRoomEdit", storeRoom);
-        }
+        //    return View("StoreRoomEdit", storeRoom);
+        //}
 
-        /// <summary>
-        /// 接收表單並更新資材室資料
-        /// </summary>
-        /// <param name="id">資材室識別碼</param>
-        /// <param name="storeRoom">要更新的資材室實體</param>
-        /// <returns>重新導向或原編輯檢視</returns>
-        [HttpPost]
-        public IActionResult StoreRoomEdit(Guid id, StoreRoom storeRoom)
-        {
-            var currentUser = GetCurrentUser();
+        ///// <summary>
+        ///// 接收表單並更新資材室資料
+        ///// </summary>
+        ///// <param name="id">資材室識別碼</param>
+        ///// <param name="storeRoom">要更新的資材室實體</param>
+        ///// <returns>重新導向或原編輯檢視</returns>
+        //[HttpPost]
+        //public IActionResult StoreRoomEdit(Guid id, StoreRoom storeRoom)
+        //{
+        //    var currentUser = GetCurrentUser();
 
-            ModelState.Remove("CreatedDate");
-            ModelState.Remove("CreatorId");
-            ModelState.Remove("Creator");
-            ModelState.Remove("ModifiedDate");
-            ModelState.Remove("ModifierId");
-            ModelState.Remove("Modifier");
+        //    ModelState.Remove("CreatedDate");
+        //    ModelState.Remove("CreatorId");
+        //    ModelState.Remove("Creator");
+        //    ModelState.Remove("ModifiedDate");
+        //    ModelState.Remove("ModifierId");
+        //    ModelState.Remove("Modifier");
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    bool isDuplicate = _context.StoreRooms.Any(c =>
-                        c.ROOM_ID != id &&
-                        (c.ROOM_NAME == storeRoom.ROOM_NAME));
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            bool isDuplicate = _context.StoreRooms.Any(c =>
+        //                c.ROOM_ID != id &&
+        //                (c.ROOM_NAME == storeRoom.ROOM_NAME));
 
-                    if (isDuplicate)
-                    {
-                        TempData["ErrorMessage"] = "修改失敗！資料庫中已存在相同的資材室名稱。"; // 修正舊有錯誤訊息
-                        return View("StoreRoomEdit", storeRoom);
-                    }
+        //            if (isDuplicate)
+        //            {
+        //                TempData["ErrorMessage"] = "修改失敗！資料庫中已存在相同的資材室名稱。"; // 修正舊有錯誤訊息
+        //                return View("StoreRoomEdit", storeRoom);
+        //            }
 
-                    var existingStoreRoom = _context.StoreRooms.Find(id);
-                    if (existingStoreRoom != null)
-                    {
-                        existingStoreRoom.ROOM_NAME = storeRoom.ROOM_NAME;
-                        existingStoreRoom.ModifierId = currentUser.UserId;
-                        existingStoreRoom.Modifier = currentUser.UserName;
+        //            var existingStoreRoom = _context.StoreRooms.Find(id);
+        //            if (existingStoreRoom != null)
+        //            {
+        //                existingStoreRoom.ROOM_NAME = storeRoom.ROOM_NAME;
+        //                existingStoreRoom.ModifierId = currentUser.UserId;
+        //                existingStoreRoom.Modifier = currentUser.UserName;
 
-                        _context.Update(existingStoreRoom);
-                        _context.SaveChanges();
+        //                _context.Update(existingStoreRoom);
+        //                _context.SaveChanges();
 
-                        TempData["SuccessMessage"] = "資料修改成功！";
-                        return RedirectToAction(nameof(StoreRoomEdit), new { id });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    TempData["ErrorMessage"] = "系統發生錯誤，修改失敗：" + ex.Message;
-                }
-            }
-            else
-            {
-                var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                TempData["ErrorMessage"] = "資料格式有誤：" + errors;
-            }
+        //                TempData["SuccessMessage"] = "資料修改成功！";
+        //                return RedirectToAction(nameof(StoreRoomEdit), new { id });
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            TempData["ErrorMessage"] = "系統發生錯誤，修改失敗：" + ex.Message;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+        //        TempData["ErrorMessage"] = "資料格式有誤：" + errors;
+        //    }
 
-            return View("StoreRoomEdit", storeRoom);
-        }
+        //    return View("StoreRoomEdit", storeRoom);
+        //}
 
         /// <summary>
         /// 停用資材室區域
