@@ -1,4 +1,4 @@
-﻿@model Web_EAMSystem.Models.ItemName
+@model Web_EAMSystem.Models.ItemName
 
 @{
     ViewData["Title"] = "新增品名資料";
@@ -23,9 +23,9 @@
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="IN" class="control-label">品名</label>
-                <input asp-for="IN" class="form-control" />
-                <span asp-validation-for="IN" class="text-danger"></span>
+                <label asp-for="IN_NAME" class="control-label">品名</label>
+                <input asp-for="IN_NAME" class="form-control" />
+                <span asp-validation-for="IN_NAME" class="text-danger"></span>
             </div>
 
             <div class="form-group mt-3">
@@ -40,14 +40,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // 等待 HTML 畫面完全載入後執行
         document.addEventListener("DOMContentLoaded", function () {
-
-            // 從後端接收成功或錯誤訊息 (Razor 語法轉成 JavaScript 字串)
             var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
             var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
 
-            // 如果有成功訊息，彈出綠色打勾視窗
             if (successMsg) {
                 Swal.fire({
                     icon: 'success',
@@ -57,7 +53,6 @@
                 });
             }
 
-            // 如果有錯誤訊息，彈出紅色叉叉視窗
             if (errorMsg) {
                 Swal.fire({
                     icon: 'error',

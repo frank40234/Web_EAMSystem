@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Web_EAMSystem.Models.AssetInfo>
+@model IEnumerable<Web_EAMSystem.Models.AssetInfo>
 
 @{
     ViewData["Title"] = "物料清單維護";
@@ -70,7 +70,7 @@
                 <td>@item.ItemName?.SubAssetCategory?.AssetCategory?.MAIN_CAT_NAME</td>
                 <td>@item.ItemName?.SubAssetCategory?.SUB_CAT_CODE</td>
                 <td>@item.ItemName?.SubAssetCategory?.SUB_CAT_NAME</td>
-                <td>@item.ItemName?.IN</td>
+                <td>@item.ItemName?.IN_NAME</td>
                 <th>@item.ItemName?.IN_CODE</th>
                 
                 <td>@item.MODEL</td>

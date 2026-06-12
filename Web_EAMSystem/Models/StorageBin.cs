@@ -1,36 +1,37 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Web_EAMSystem.Models
 {
-    public class StorageBin
+    /// <summary>
+    /// 儲位實體，隸屬於特定資材室，代表具體存放貨架位置（如 A區_1-1）
+    /// </summary>
+    public class StorageBin : BaseEntity
     {
+        /// <summary>
+        /// 儲位唯一識別碼
+        /// </summary>
         [Key]
         public Guid BIN_ID { get; set; }
 
-        // 🌟 關聯到資材室的外鍵
+        /// <summary>
+        /// 所屬的資材室唯一識別碼
+        /// </summary>
         [Required(ErrorMessage = "請選擇所屬資材室")]
         public Guid ROOM_ID { get; set; }
 
+        /// <summary>
+        /// 所屬的資材室導覽屬性
+        /// </summary>
         [ForeignKey("ROOM_ID")]
-        public StoreRoom? StoreRoom { get; set; }
+        public virtual StoreRoom? StoreRoom { get; set; }
 
-        // 儲位代號 (例如: "A-01", "A-02")
+        /// <summary>
+        /// 儲位編碼，例如：A區_1-1
+        /// </summary>
         [Required(ErrorMessage = "請輸入儲位代號")]
-        [MaxLength(20)]
-        public string BIN_CODE { get; set; }
-
-        // --- 以下為系統共用欄位 ---
-        [MaxLength(10)]
-        public string? Creator { get; set; }
-        [MaxLength(10)]
-        public string? CreatorId { get; set; }
-        public DateTime CreatedDate { get; set; }
-        [MaxLength(10)]
-        public string? Modifier { get; set; }
-        [MaxLength(10)]
-        public string? ModifierId { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public bool IsDisabled { get; set; }
+        [MaxLength(20, ErrorMessage = "儲位代號長度不能超過 20 個字元")]
+        public string BIN_CODE { get; set; } = string.Empty;
     }
 }
